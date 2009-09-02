@@ -16,65 +16,65 @@ class Catalog:
     pass
 
   def add(self, object):
-    pass
+    raise NotImplementedError()
 
   def remove(self, object):
-    pass
+    raise NotImplementedError()
 
   def save(self, object):
-    pass
+    raise NotImplementedError()
 
   def getStore(self, id=None, workspace=None, name=None):
-    pass
+    raise NotImplementedError()
 
   def getStores(self, workspace=None):
-    pass
+    raise NotImplementedError()
 
   def getResource(self, id=None, namespace=None, name=None, store=None):
-    pass
+    raise NotImplementedError()
 
   def getResources(self, namespace=None, store=None):
-    pass
+    raise NotImplementedError()
 
   def getLayer(self, id=None, name=None):
-    pass
+    raise NotImplementedError()
 
   def getLayers(self, resource=None, style=None):
-    pass
+    raise NotImplementedError()
 
   def getMaps(self):
-    pass
+    raise NotImplementedError()
 
   def getMap(self, id=None, name=None):
-    pass
+    raise NotImplementedError()
 
   def getLayerGroup(self, id=None, name=None):
-    pass
+    raise NotImplementedError()
 
   def getLayerGroups(self):
-    pass
+    raise NotImplementedError()
 
   def getStyle(self, id=None, name=None):
-    pass
+    raise NotImplementedError()
 
   def getStyles(self):
-    pass
+    raise NotImplementedError()
   
   def getNamespace(self, id=None, prefix=None, uri=None):
-    pass
+    raise NotImplementedError()
 
   def getDefaultNamespace(self):
-    pass
+    raise NotImplementedError()
 
   def setDefaultNamespace(self):
-    pass
+    raise NotImplementedError()
 
   def getWorkspace(self, id=None, name=None):
-    pass
+    raise NotImplementedError()
 
   def getDefaultWorkspace(self):
-    pass
+    raise NotImplementedError()
 
   def setDefaultWorkspace(self):
-    pass
+    raise NotImplementedError()
 

@@ -3,6 +3,7 @@ from catalog import Catalog
 cat = Catalog("http://localhost:8080/geoserver/rest")
 
 print cat.getWorkspaces()
+print cat.getDefaultWorkspace()
 topp = cat.getWorkspace("topp")
 sf = cat.getWorkspace("sf")
 print topp, sf
@@ -29,4 +30,8 @@ print cat.getResource("sfdem", workspace=sf)
 print cat.getResource("sfdem")
 
 print cat.getStyles()
-print cat.getStyle("population")
+population = cat.getStyle("population")
+print population
+
+print cat.getLayers()
+print cat.getLayers("population")

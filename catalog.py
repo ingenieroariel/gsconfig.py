@@ -12,6 +12,29 @@ def getJSON(url):
 class AmbiguousRequestError(Exception):
   pass 
 
+class Layer: 
+  def __init__(self, params):
+    self.name = params["name"]
+    self.href = params["href"]
+    self.update()
+
+  def update(self):
+    try: 
+      layer = getJSON(self.href)["layer"]
+      self.name = layer["name"]
+      self.attribution = layer["attribution"]
+      self.enabled = layer["enabled"]
+      self.default_style = Style(layer["defaultStyle"])
+      if layer["resource"]["@class"] == "featureType":
+        self.resource = FeatureType(layer["resource"])
+      elif layer["resource"]["@class"] == "coverage":
+        self.resource = Coverage(layer["resource"])
+    except HTTPError, e:
+      print e.geturl()
+
+  def __repr__(self):
+    return "Layer[%s]" % self.name
+
 class Style:
   def __init__(self, params):
     self.name = params["name"]
@@ -63,10 +86,15 @@ class DataStore:
     return "DataStore[%s:%s]" % (self.workspace.name, self.name)
 
 class FeatureType:
-  def __init__(self, params, store):
+  def __init__(self, params, store=None):
     self.name = params["name"]
     self.href = params["href"]
     self.store = store
+    self.update()
+
+  def update(self):
+    response = getJSON(self.href)
+    params = response["featureType"]
 
   def __repr__(self):
     return "%s :: %s" % (self.store, self.name)
@@ -101,7 +129,7 @@ class CoverageStore:
     return "CoverageStore[%s:%s]" % (self.workspace.name, self.name)
 
 class Coverage:
-  def __init__(self, params, store):
+  def __init__(self, params, store=None):
     self.name = params["name"]
     self.href = params["href"]
     self.store = store
@@ -233,7 +261,8 @@ class Catalog:
     raise NotImplementedError()
 
   def getLayers(self, resource=None, style=None):
-    raise NotImplementedError()
+    description = getJSON("%s/layers.json" % self.service_url)
+    return [Layer(l) for l in description["layers"]["layer"]]
 
   def getMaps(self):
     raise NotImplementedError()
@@ -281,7 +310,7 @@ class Catalog:
     return Workspace(ws["name"], href)
 
   def getDefaultWorkspace(self):
-    raise NotImplementedError()
+    return self.getWorkspace("default")
 
   def setDefaultWorkspace(self):
     raise NotImplementedError()

@@ -34,7 +34,11 @@ class DataStore:
       self.feature_type_url = params["featureTypes"]
 
   def update(self):
-    pass
+    response = getJSON(self.href)
+    params = response["dataStore"]
+    self.enabled = params["enabled"]
+    self.connection_parameters = params["connectionParameters"]["entry"]
+    self.feature_type_url = params["featureTypes"]
 
   def getResources(self):
     response = getJSON(self.feature_type_url)
@@ -68,7 +72,11 @@ class CoverageStore:
       self.coverage_url = params["coverages"]
 
   def update(self):
-    pass
+    response = getJSON(self.href)
+    params = response["coverageStore"]
+    self.enabled = params["enabled"]
+    self.data_url = params["url"]
+    self.coverage_url = params["coverages"]
 
   def getResources(self):
     response = getJSON(self.coverage_url)
@@ -180,6 +188,11 @@ class Catalog:
   def getResources(self, store=None, workspace=None, namespace=None):
     if store is not None:
       return store.getResources()
+    if workspace is not None:
+      resources = []
+      for store in self.getStores(workspace):
+        resources.extend(self.getResources(store))
+      return resources
     raise NotImplementedError()
 
   def getLayer(self, id=None, name=None):

@@ -15,4 +15,11 @@ sfdem = cat.getStore("sfdem")
 print states_shapefile, sfdem
 
 print cat.getResources(states_shapefile)
+print cat.getResources(workspace=topp)
 print cat.getResources(sfdem)
+print cat.getResources(workspace=sf)
+
+#print cat.getResource("states", states_shapefile)
+# print cat.getResource("states", topp)
+# print cat.getResource("states")
+

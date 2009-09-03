@@ -12,6 +12,20 @@ def getJSON(url):
 class AmbiguousRequestError(Exception):
   pass 
 
+class Style:
+  def __init__(self, params):
+    self.name = params["name"]
+    self.href = params["href"]
+    self.update()
+
+  def update(self):
+    response = getJSON(self.href)
+    self.name = response["style"]["name"]
+    self.filename = response["style"]["filename"]
+
+  def __repr__(self):
+    return "Style[%s]" % self.name
+
 class Workspace: 
   def __init__(self, name, href):
     self.name = name
@@ -182,8 +196,28 @@ class Catalog:
 
       return stores
 
-  def getResource(self, name, store=None, namespace=None):
-    raise NotImplementedError()
+  def getResource(self, name, store=None, workspace=None):
+    if store is not None:
+      candidates = filter(lambda x: x.name == name, store.getResources())
+      if len(candidates) == 0:
+        return None
+      elif len(candidates) > 1:
+        raise AmbiguousRequestError
+      else:
+        return candidates[0]
+
+    if workspace is not None:
+      for store in self.getStores(workspace):
+        resource = self.getResource(name, store)
+        if resource is not None:
+          return resource
+      return None
+
+    for ws in self.getWorkspaces():
+      resource = self.getResource(name, workspace=ws)
+      if resource is not None:
+        return resource
+    return None
 
   def getResources(self, store=None, workspace=None, namespace=None):
     if store is not None:
@@ -213,11 +247,19 @@ class Catalog:
   def getLayerGroups(self):
     raise NotImplementedError()
 
-  def getStyle(self, id=None, name=None):
-    raise NotImplementedError()
+  def getStyle(self, name):
+    candidates = filter(lambda x: x.name == name, self.getStyles())
+    if len(candidates) == 0:
+      return None
+    elif len(candidates) > 1:
+      raise AmbiguousRequestError
+    else:
+      return candidates[0]
 
   def getStyles(self):
-    raise NotImplementedError()
+    description = getJSON("%s/styles.json" % self.service_url)
+    return [Style(s) for s in description["styles"]["style"]]
+    return description
   
   def getNamespace(self, id=None, prefix=None, uri=None):
     raise NotImplementedError()

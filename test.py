@@ -1,37 +1,48 @@
+import unittest
 from catalog import Catalog
 
-cat = Catalog("http://localhost:8080/geoserver/rest")
+class CatalogTests(unittest.TestCase):
+  def setUp(self):
+    self.cat = Catalog("http://localhost:8080/geoserver/rest")
 
-print cat.getWorkspaces()
-print cat.getDefaultWorkspace()
-topp = cat.getWorkspace("topp")
-sf = cat.getWorkspace("sf")
-print topp, sf
+  def testWorkspaces(self):
+    self.assertEqual(7, len(self.cat.getWorkspaces()))
+    self.assertEqual("nurc", self.cat.getDefaultWorkspace().name)
+    self.assertEqual("topp", self.cat.getWorkspace("topp").name)
 
-print cat.getStores()
-print cat.getStores(topp)
-print cat.getStores(sf)
-print cat.getStore("states_shapefile", topp)
-print cat.getStore("sfdem", sf)
-states_shapefile = cat.getStore("states_shapefile")
-sfdem = cat.getStore("sfdem")
-print states_shapefile, sfdem
+  def testStores(self):
+    topp = self.cat.getWorkspace("topp")
+    sf = self.cat.getWorkspace("sf")
+    self.assertEqual(9, len(self.cat.getStores()))
+    self.assertEqual(2, len(self.cat.getStores(topp)))
+    self.assertEqual(2, len(self.cat.getStores(sf)))
+    self.assertEqual("states_shapefile", self.cat.getStore("states_shapefile", topp).name)
+    self.assertEqual("states_shapefile", self.cat.getStore("states_shapefile").name)
+    self.assertEqual("sfdem", self.cat.getStore("sfdem", sf).name)
+    self.assertEqual("sfdem", self.cat.getStore("sfdem").name)
+  
+  def testResources(self):
+    topp = self.cat.getWorkspace("topp")
+    sf = self.cat.getWorkspace("sf")
+    states = self.cat.getStore("states_shapefile", topp)
+    sfdem = self.cat.getStore("sfdem", sf)
+    self.assertEqual(19, len(self.cat.getResources()))
+    self.assertEqual(1, len(self.cat.getResources(states)))
+    self.assertEqual(5, len(self.cat.getResources(workspace=topp)))
+    self.assertEqual(1, len(self.cat.getResources(sfdem)))
+    self.assertEqual(6, len(self.cat.getResources(workspace=sf)))
 
-print cat.getResources(states_shapefile)
-print cat.getResources(workspace=topp)
-print cat.getResources(sfdem)
-print cat.getResources(workspace=sf)
+    self.assertEqual("states", self.cat.getResource("states", states).name)
+    self.assertEqual("states", self.cat.getResource("states", workspace=topp).name)
+    self.assertEqual("states", self.cat.getResource("states").name)
 
-print cat.getResource("states", states_shapefile)
-print cat.getResource("states", workspace=topp)
-print cat.getResource("states")
-print cat.getResource("sfdem", sfdem)
-print cat.getResource("sfdem", workspace=sf)
-print cat.getResource("sfdem")
+    self.assertEqual("sfdem", self.cat.getResource("sfdem", sfdem).name)
+    self.assertEqual("sfdem", self.cat.getResource("sfdem", workspace=sf).name)
+    self.assertEqual("sfdem", self.cat.getResource("sfdem").name)
 
-print cat.getStyles()
-population = cat.getStyle("population")
-print population
+  def testStyles(self):
+    self.assertEqual(23, len(self.cat.getStyles()))
+    self.assertEqual("population", self.cat.getStyle("population").name)
 
-print cat.getLayers()
-print cat.getLayers("population")
+if __name__ == "__main__":
+  unittest.main()

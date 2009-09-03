@@ -9,8 +9,10 @@ print topp, sf
 
 print cat.getStores()
 print cat.getStore("states_shapefile", topp)
-print cat.getStore("states_shapefile")
 print cat.getStore("sfdem", sf)
-print cat.getStore("sfdem")
+states_shapefile = cat.getStore("states_shapefile")
+sfdem = cat.getStore("sfdem")
+print states_shapefile, sfdem
 
-
+print cat.getResources(states_shapefile)
+print cat.getResources(sfdem)

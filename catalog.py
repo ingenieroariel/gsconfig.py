@@ -9,6 +9,9 @@ def getJSON(url):
     print response
     raise
 
+class AmbiguousRequestError(Exception):
+  pass 
+
 class Workspace: 
   def __init__(self, name, href):
     self.name = name
@@ -33,8 +36,22 @@ class DataStore:
   def update(self):
     pass
 
+  def getResources(self):
+    response = getJSON(self.feature_type_url)
+    types = response["featureTypes"]["featureType"]
+    return [FeatureType(ft, self) for ft in types]
+
   def __repr__(self):
     return "DataStore[%s:%s]" % (self.workspace.name, self.name)
+
+class FeatureType:
+  def __init__(self, params, store):
+    self.name = params["name"]
+    self.href = params["href"]
+    self.store = store
+
+  def __repr__(self):
+    return "%s :: %s" % (self.store, self.name)
 
 class CoverageStore:
   def __init__(self, params, workspace=None):
@@ -53,8 +70,22 @@ class CoverageStore:
   def update(self):
     pass
 
+  def getResources(self):
+    response = getJSON(self.coverage_url)
+    types = response["coverages"]["coverage"]
+    return [Coverage(cov, self) for cov in types]
+
   def __repr__(self):
     return "CoverageStore[%s:%s]" % (self.workspace.name, self.name)
+
+class Coverage:
+  def __init__(self, params, store):
+    self.name = params["name"]
+    self.href = params["href"]
+    self.store = store
+  
+  def __repr__(self):
+    return "%s :: %s" % (self.store, self.name)
 
 class Catalog:
   """
@@ -143,10 +174,12 @@ class Catalog:
 
       return stores
 
-  def getResource(self, id=None, namespace=None, name=None, store=None):
+  def getResource(self, name, store=None, namespace=None):
     raise NotImplementedError()
 
-  def getResources(self, namespace=None, store=None):
+  def getResources(self, store=None, workspace=None, namespace=None):
+    if store is not None:
+      return store.getResources()
     raise NotImplementedError()
 
   def getLayer(self, id=None, name=None):

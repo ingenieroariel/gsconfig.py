@@ -255,7 +255,10 @@ class Catalog:
       for store in self.getStores(workspace):
         resources.extend(self.getResources(store))
       return resources
-    raise NotImplementedError()
+    resources = []
+    for ws in self.getWorkspaces():
+      resources.extend(self.getResources(workspace=ws))
+    return resources
 
   def getLayer(self, id=None, name=None):
     raise NotImplementedError()

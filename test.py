@@ -33,5 +33,5 @@ print cat.getStyles()
 population = cat.getStyle("population")
 print population
 
-print cat.getLayers()
-print cat.getLayers("population")
+# print cat.getLayers()
+# print cat.getLayers("population")

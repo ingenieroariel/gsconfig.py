@@ -1,4 +1,5 @@
 import json
+from pprint import pprint as pp
 from urllib2 import urlopen, HTTPError
 
 def getJSON(url):
@@ -85,7 +86,25 @@ class DataStore:
   def __repr__(self):
     return "DataStore[%s:%s]" % (self.workspace.name, self.name)
 
-class FeatureType:
+class ResourceInfo:
+  resourceType = 'abstractResourceType'
+
+  def update(self):
+    self.response = getJSON(self.href)
+    self.params = params = self.response[self.resourceType]
+    import pdb; pdb.set_trace()
+    self.title = params[u'title']
+    self.srs = params[u'srs']
+    self.name = params[u'name']
+    self.keyword = params[u'keywords']
+    self.abstract = params[u'abstract']
+
+  def getAbstract(self):
+    return self.abstract
+
+class FeatureType(ResourceInfo):
+  resourceType = 'featureType'
+
   def __init__(self, params, store=None):
     self.name = params["name"]
     self.href = params["href"]
@@ -93,13 +112,14 @@ class FeatureType:
     self.update()
 
   def update(self):
-    response = getJSON(self.href)
-    params = response["featureType"]
+    ResourceInfo.update(self)
 
   def __repr__(self):
     return "%s :: %s" % (self.store, self.name)
 
-class CoverageStore:
+class CoverageStore(ResourceInfo):
+  resourceType = 'coverageStore'
+
   def __init__(self, params, workspace=None):
     self.name = params["name"]
     self.workspace = workspace if workspace is not None else Workspace(params["workspace"]["name"], params["workspace"]["href"])
@@ -114,11 +134,10 @@ class CoverageStore:
       self.coverage_url = params["coverages"]
 
   def update(self):
-    response = getJSON(self.href)
-    params = response["coverageStore"]
-    self.enabled = params["enabled"]
-    self.data_url = params["url"]
-    self.coverage_url = params["coverages"]
+    ResourceInfo.update(self)
+    self.enabled = self.params["enabled"]
+    self.coverage_url = self.params["coverages"]
+    self.data_url = self.params["url"]
 
   def getResources(self):
     response = getJSON(self.coverage_url)

@@ -2,6 +2,7 @@ import json
 from pprint import pprint as pp
 from urllib2 import urlopen, HTTPError
 import httplib2
+import re
 
 def getJSON(url):
   response = urlopen(url).read()
@@ -192,14 +193,20 @@ class Catalog:
     url = object.getUrl(self.service_url)
     objectJson = object.serialize()
 
-    headers = {"Content-type": "text/json",
-               "Accept": "text/json",
-               "":""} # domain name here?  what?
-    conn = httplib.HTTPConnection("musi-cal.mojam.com:80")
-    conn.request("POST", "/cgi-bin/query", params=None, headers)
-
-    pp(url)
     pp(objectJson)
+
+    pattern = "((?:http://)?)([^/]+)(.*$)"
+    urlmatch = re.match(pattern, url);
+
+    headers = {"Content-type": "text/json",
+                "Accept": "text/json",
+                "":""} #credentials here
+    http = httplib2.Http()
+    http.add_credentials("admin","geoserver")
+    response = http.request(url, "PUT", objectJson, headers)
+
+    pp(response)
+
 
     # push serialized object to the url
 

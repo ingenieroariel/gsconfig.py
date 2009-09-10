@@ -1,6 +1,7 @@
 import json
 from pprint import pprint as pp
 from urllib2 import urlopen, HTTPError
+import httplib2
 
 def getJSON(url):
   response = urlopen(url).read()
@@ -91,28 +92,32 @@ class ResourceInfo:
 
   def update(self):
     self.response = getJSON(self.href)
-    self.params = params = self.response[self.resourceType]
-    import pdb; pdb.set_trace()
-    self.title = params[u'title']
-    self.srs = params[u'srs']
-    self.name = params[u'name']
-    self.keyword = params[u'keywords']
-    self.abstract = params[u'abstract']
+    pp(self.response)
+    self.metadata = params = self.response[self.resourceType]
 
-  def getAbstract(self):
-    return self.abstract
+  def serialize(self):
+    return json.dumps(self.metadata)
+
+  # huh?
+  @property
+  def name(self):
+    return self.metadata.get(u'name',None)
+
+  @property
+  def abstract(self):
+    return self.metadata.get(u'abstract',None)
+    
 
 class FeatureType(ResourceInfo):
   resourceType = 'featureType'
 
   def __init__(self, params, store=None):
-    self.name = params["name"]
-    self.href = params["href"]
+    self.href = params.get("href","")
     self.store = store
     self.update()
 
-  def update(self):
-    ResourceInfo.update(self)
+  def getUrl(self, service_url):
+    return "%s/workspaces/%s/datastores/%s/featuretypes/%s.json" % (service_url, self.store.workspace.name, self.store.name, self.name)
 
   def __repr__(self):
     return "%s :: %s" % (self.store, self.name)
@@ -128,16 +133,13 @@ class CoverageStore(ResourceInfo):
       self.href = params["href"]
       self.update()
     else:
-      self.type = params["type"]
-      self.enabled = params["enabled"]
-      self.data_url = params["url"]
-      self.coverage_url = params["coverages"]
+      self.type = params.get("type","")
+      self.enabled = params.get("enabled","")
+      self.data_url = params.get("url","")
+      self.coverage_url = params.get("coverages","")
 
-  def update(self):
-    ResourceInfo.update(self)
-    self.enabled = self.params["enabled"]
-    self.coverage_url = self.params["coverages"]
-    self.data_url = self.params["url"]
+  #def update(self):
+    #ResourceInfo.update(self)]
 
   def getResources(self):
     response = getJSON(self.coverage_url)
@@ -179,8 +181,29 @@ class Catalog:
   def remove(self, object):
     raise NotImplementedError()
 
+  """
+  saves an object to the REST service
+
+  gets the object's REST location and the json from the object,
+  then POSTS the request.
+  """
   def save(self, object):
-    raise NotImplementedError()
+
+    url = object.getUrl(self.service_url)
+    objectJson = object.serialize()
+
+    headers = {"Content-type": "text/json",
+               "Accept": "text/json",
+               "":""} # domain name here?  what?
+    conn = httplib.HTTPConnection("musi-cal.mojam.com:80")
+    conn.request("POST", "/cgi-bin/query", params=None, headers)
+
+    pp(url)
+    pp(objectJson)
+
+    # push serialized object to the url
+
+    #raise NotImplementedError()
 
   def getStore(self, name, workspace=None):
     if workspace is None:

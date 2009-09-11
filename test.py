@@ -7,7 +7,7 @@ class CatalogTests(unittest.TestCase):
 
   def testWorkspaces(self):
     self.assertEqual(7, len(self.cat.getWorkspaces()))
-    self.assertEqual("tiger", self.cat.getDefaultWorkspace().name)
+    self.assertEqual("topp", self.cat.getDefaultWorkspace().name)
     self.assertEqual("topp", self.cat.getWorkspace("topp").name)
 
   def testStores(self):
@@ -41,7 +41,7 @@ class CatalogTests(unittest.TestCase):
     self.assertEqual("sfdem", self.cat.getResource("sfdem").name)
 
   def testStyles(self):
-    self.assertEqual(23, len(self.cat.getStyles()))
+    self.assertEqual(22, len(self.cat.getStyles()))
     self.assertEqual("population", self.cat.getStyle("population").name)
 
   def testSave(self):

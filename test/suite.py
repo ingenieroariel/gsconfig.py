@@ -1,5 +1,5 @@
 import unittest
-from catalog import Catalog
+from geoserver.catalog import Catalog
 
 class CatalogTests(unittest.TestCase):
   def setUp(self):

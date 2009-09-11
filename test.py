@@ -44,5 +44,24 @@ class CatalogTests(unittest.TestCase):
     self.assertEqual(23, len(self.cat.getStyles()))
     self.assertEqual("population", self.cat.getStyle("population").name)
 
+  def testSave(self):
+    #test saving round trip
+    rs = self.cat.getResource("bugsites")
+    old_abstract = rs.get('abstract')
+    new_abstract = "Not the original abstract"
+
+    #Change abstract on server
+    rs.set('abstract', new_abstract)
+    self.cat.save(rs)
+    rs = self.cat.getResource("bugsites")
+    self.assertEqual(new_abstract, rs.get('abstract'))
+
+    #Restore abstract
+    rs.set('abstract', old_abstract)
+    self.cat.save(rs)
+    rs = self.cat.getResource("bugsites")
+    self.assertEqual(old_abstract, rs.get('abstract'))
+
+
 if __name__ == "__main__":
   unittest.main()

@@ -88,26 +88,23 @@ class DataStore:
   def __repr__(self):
     return "DataStore[%s:%s]" % (self.workspace.name, self.name)
 
-class ResourceInfo:
+
+class ResourceInfo(object):
   resourceType = 'abstractResourceType'
 
   def update(self):
     self.response = getJSON(self.href)
-    pp(self.response)
     self.metadata = params = self.response[self.resourceType]
+    self.name = params[u'name']
 
   def serialize(self):
-    return json.dumps(self.metadata)
+    return json.dumps({self.resourceType : self.metadata})
 
-  # huh?
-  @property
-  def name(self):
-    return self.metadata.get(u'name',None)
+  def get(self, key):
+    return self.metadata.get(key)
 
-  @property
-  def abstract(self):
-    return self.metadata.get(u'abstract',None)
-    
+  def set(self, key, value):
+    self.metadata[key] = value
 
 class FeatureType(ResourceInfo):
   resourceType = 'featureType'
@@ -139,8 +136,10 @@ class CoverageStore(ResourceInfo):
       self.data_url = params.get("url","")
       self.coverage_url = params.get("coverages","")
 
-  #def update(self):
-    #ResourceInfo.update(self)]
+  def update(self):
+    ResourceInfo.update(self)
+    self.data_url = self.metadata.get("url","")
+    self.coverage_url = self.metadata.get("coverages","")
 
   def getResources(self):
     response = getJSON(self.coverage_url)
@@ -188,29 +187,19 @@ class Catalog:
   gets the object's REST location and the json from the object,
   then POSTS the request.
   """
-  def save(self, object):
+  def save(self, object, username="admin", password="geoserver"):
 
     url = object.getUrl(self.service_url)
     objectJson = object.serialize()
 
-    pp(objectJson)
-
-    pattern = "((?:http://)?)([^/]+)(.*$)"
-    urlmatch = re.match(pattern, url);
-
     headers = {"Content-type": "text/json",
-                "Accept": "text/json",
-                "":""} #credentials here
+                "Accept": "text/json"}
+
     http = httplib2.Http()
-    http.add_credentials("admin","geoserver")
+    http.add_credentials(username,password) #factor out these credentials
     response = http.request(url, "PUT", objectJson, headers)
 
-    pp(response)
-
-
-    # push serialized object to the url
-
-    #raise NotImplementedError()
+    return response
 
   def getStore(self, name, workspace=None):
     if workspace is None:

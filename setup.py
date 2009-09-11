@@ -11,6 +11,6 @@ setup(name = "GSConfig",
     author = "David Winslow, Sebastian Benthall",
     author_email = "dwinslow@opengeo.org",
     package_dir = {'':'lib'},
-    test_suite = "test.suite.CatalogTests"
+    test_suite = "test.catalogtests"
 ) 
 

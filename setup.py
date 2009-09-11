@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+
+from setuptools import setup
+
+setup(name = "GSConfig",
+    version = "1.0",
+    description = "GeoServer REST Configuration Client",
+    author = "David Winslow, Sebastian Benthall",
+    author_email = "dwinslow@opengeo.org",
+    package_dir = {'':'lib'},
+    test_suite = "test.suite.CatalogTests"
+) 
+

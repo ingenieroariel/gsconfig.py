@@ -115,7 +115,7 @@ class FeatureType(ResourceInfo):
     self.update()
 
   def getUrl(self, service_url):
-    return "%s/workspaces/%s/datastores/%s/featuretypes/%s.json" % (service_url, self.store.workspace.name, self.store.name, self.name)
+    return self.href
 
   def __repr__(self):
     return "%s :: %s" % (self.store, self.name)
@@ -198,6 +198,13 @@ class Catalog:
     http = httplib2.Http()
     http.add_credentials(username,password) #factor out these credentials
     response = http.request(url, "PUT", objectJson, headers)
+
+    #file = open("request","w")
+    #file.write("Method: " + "PUT" +"\n")
+    #file.write("Url: " + url + "\n")
+    #file.write("Body: " + objectJson + "\n")
+    #file.write("\n")
+    #file.write("Response (printed from Python response represenation): " + response.__repr__())
 
     return response
 

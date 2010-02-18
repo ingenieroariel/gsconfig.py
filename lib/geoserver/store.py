@@ -1,58 +1,74 @@
-from geoserver.support import ResourceInfo, getJSON
 from geoserver.resource import FeatureType, Coverage
+from geoserver.support import ResourceInfo, get_xml, atom_link
+from geoserver.workspace import Workspace
 
 class DataStore:
-  def __init__(self, params, workspace=None):
-    self.name = params["name"]
-    self.workspace = workspace if workspace is not None else Workspace(params["workspace"]["name"], params["workspace"]["href"])
+  def __init__(self, node, workspace=None):
+    self.name = node.find("name").text
+    if workspace is not None:
+        self.workspace = workspace
+    else:
+        ws = node.find("workspace/name").text
+        href = node.find("workspace/{http://www.w3.org/2005/Atom}link").get("href")
+        self.workspace = Workspace(ws, href)
 
-    if "href" in params:
-      self.href = params["href"]
+    link = node.find("{http://www.w3.org/2005/Atom}link")
+    if link is not None and "href" in link.attrib:
+      self.href = link.attrib["href"]
       self.update()
     else:
-      self.enabled = params["enabled"]
-      self.connection_parameters = params["connectionParameters"]["entry"]
-      self.feature_type_url = params["featureTypes"]
+      self.enabled = node.find("enabled") == "true"
+      self.connection_parameters = [
+          (entry.get("key"), entry.text) for entry in node.findall("connectionParameters/entry")
+      ]
+      self.feature_type_url = atom_link(node.find("featureTypes"))
 
   def update(self):
-    response = getJSON(self.href)
-    params = response["dataStore"]
-    self.enabled = params["enabled"]
-    self.connection_parameters = params["connectionParameters"]["entry"]
-    self.feature_type_url = params["featureTypes"]
+    node = get_xml(self.href)
+    self.enabled = node.find("enabled") == "true"
+    self.connection_parameters = [
+        (entry.get("key"), entry.text) for entry in node.findall("connectionParameters/entry")
+    ]
+    self.feature_type_url = atom_link(node.find("featureTypes"))
 
   def getResources(self):
-    response = getJSON(self.feature_type_url)
-    types = response["featureTypes"]["featureType"]
+    node = get_xml(self.feature_type_url)
+    types = node.findall("featureType")
     return [FeatureType(ft, self) for ft in types]
 
   def __repr__(self):
     return "DataStore[%s:%s]" % (self.workspace.name, self.name)
 
 class CoverageStore(ResourceInfo):
-  resourceType = 'coverageStore'
+  resource_type = 'coverageStore'
 
-  def __init__(self, params, workspace=None):
-    self.name = params["name"]
-    self.workspace = workspace if workspace is not None else Workspace(params["workspace"]["name"], params["workspace"]["href"])
+  def __init__(self, node, workspace=None):
+    self.name = node.find("name").text
+    if workspace is not None:
+        self.workspace = workspace
+    else:
+        name = node.find("name").text
+        href = atom_link(node.find("workspace"))
+        self.workspace = Workspace(name, href)
 
-    if "href" in params:
-      self.href = params["href"]
+    link = node.find("{http://www.w3.org/2005/Atom}link")
+    if link is not None and "href" in link.attrib:
+      self.href = link.attrib["href"]
       self.update()
     else:
-      self.type = params.get("type","")
-      self.enabled = params.get("enabled","")
-      self.data_url = params.get("url","")
-      self.coverage_url = params.get("coverages","")
+      self.type = node.find("type").text
+      self.enabled = node.find("enabled").text == "true"
+      self.data_url = node.find("url").text
+      self.coverage_url = atom_link(node.find("coverages"))
 
   def update(self):
     ResourceInfo.update(self)
-    self.data_url = self.metadata.get("url","")
-    self.coverage_url = self.metadata.get("coverages","")
+    self.data_url = self.metadata.find("url").text
+    self.coverage_url = atom_link(self.metadata.find("coverages"))
 
   def getResources(self):
-    response = getJSON(self.coverage_url)
-    types = response["coverages"]["coverage"]
+    response = get_xml(self.coverage_url)
+    types = response.findall("coverage")
     return [Coverage(cov, self) for cov in types]
 
   def __repr__(self):

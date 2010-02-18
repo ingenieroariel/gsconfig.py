@@ -1,14 +1,11 @@
-from pprint import pprint as pp
-from urllib2 import urlopen, HTTPError
 import httplib2
-import json
-import re
 
-from geoserver.resource import FeatureType, Coverage
+from geoserver.layer import Layer
 from geoserver.store import DataStore, CoverageStore
 from geoserver.style import Style
-from geoserver.support import getJSON
+from geoserver.support import get_xml
 from geoserver.workspace import Workspace
+from urllib2 import HTTPError
 
 class AmbiguousRequestError(Exception):
   pass 
@@ -27,8 +24,11 @@ class Catalog:
     Layers
   - Namespaces, which provide unique identifiers for resources
   """
-  def __init__(self, url):
+
+  def __init__(self, url, username="admin", password="geoserver"):
     self.service_url = url
+    self.http = httplib2.Http()
+    self.http.add_credentials(username, password)
 
   def add(self, object):
     raise NotImplementedError()
@@ -36,33 +36,20 @@ class Catalog:
   def remove(self, object):
     raise NotImplementedError()
 
-  """
-  saves an object to the REST service
-
-  gets the object's REST location and the json from the object,
-  then POSTS the request.
-  """
   def save(self, object, username="admin", password="geoserver"):
+    """
+    saves an object to the REST service
 
-    url = object.getUrl(self.service_url)
+    gets the object's REST location and the XML from the object,
+    then POSTS the request.
+    """
+    url = object.get_url(self.service_url)
     objectJson = object.serialize()
-
     headers = {
-        "Content-type": "text/json",
-        "Accept": "text/json"
+      "Content-type": "application/xml",
+      "Accept": "application/xml"
     }
-
-    http = httplib2.Http()
-    http.add_credentials(username,password) #factor out these credentials
-    response = http.request(url, "PUT", objectJson, headers)
-
-    #file = open("request","w")
-    #file.write("Method: " + "PUT" +"\n")
-    #file.write("Url: " + url + "\n")
-    #file.write("Body: " + objectJson + "\n")
-    #file.write("\n")
-    #file.write("Response (printed from Python response represenation): " + response.__repr__())
-
+    response = self.http.request(url, "PUT", objectJson, headers)
     return response
 
   def getStore(self, name, workspace=None):
@@ -77,17 +64,17 @@ class Catalog:
       else:
         return stores[0]
     else:
-      dsUrl = "%s/workspaces/%s/datastores/%s.json" % (self.service_url, workspace.name, name)
-      csUrl = "%s/workspaces/%s/coveragestores/%s.json" % (self.service_url, workspace.name, name)
+      ds_url = "%s/workspaces/%s/datastores/%s.xml" % (self.service_url, workspace.name, name)
+      cs_url = "%s/workspaces/%s/coveragestores/%s.xml" % (self.service_url, workspace.name, name)
 
       try:
-        store = getJSON(dsUrl)
-        return DataStore(store["dataStore"], workspace)
-      except HTTPError, e:
+        store = get_xml(ds_url)
+        return DataStore(store, workspace)
+      except HTTPError:
         try:
-          store = getJSON(csUrl)
-          return CoverageStore(store["coverageStore"], workspace)
-        except HTTPError, e2:
+          store = get_xml(cs_url)
+          return CoverageStore(store, workspace)
+        except HTTPError:
           return None
 
     raise NotImplementedError()
@@ -95,25 +82,21 @@ class Catalog:
   def getStores(self, workspace=None):
     if workspace is not None:
       stores = []
-      dsUrl = "%s/workspaces/%s/datastores.json" % (self.service_url, workspace.name)
-      csUrl = "%s/workspaces/%s/coveragestores.json" % (self.service_url, workspace.name)
+      ds_url = "%s/workspaces/%s/datastores.xml" % (self.service_url, workspace.name)
+      cs_url = "%s/workspaces/%s/coveragestores.xml" % (self.service_url, workspace.name)
 
       try: 
-        response = getJSON(dsUrl)
-        dsList = response["dataStores"]
-        if not isinstance(dsList, basestring):
-          dsList = dsList["dataStore"]
-          stores.extend([DataStore(store, workspace) for store in dsList])
+        response = get_xml(ds_url)
+        ds_list = response.findall("dataStore")
+        stores.extend([DataStore(store, workspace) for store in ds_list])
       except HTTPError, e:
         print e
         pass
 
       try: 
-        response = getJSON(csUrl)
-        csList = response["coverageStores"]
-        if not isinstance(csList, basestring): 
-          csList = csList["coverageStore"]
-          stores.extend([CoverageStore(store, workspace) for store in csList])
+        response = get_xml(cs_url)
+        cs_list = response.findall("coverageStore")
+        stores.extend([CoverageStore(store, workspace) for store in cs_list])
       except HTTPError, e:
         pass
 
@@ -166,7 +149,7 @@ class Catalog:
     raise NotImplementedError()
 
   def getLayers(self, resource=None, style=None):
-    description = getJSON("%s/layers.json" % self.service_url)
+    description = get_xml("%s/layers.xml" % self.service_url)
     return [Layer(l) for l in description["layers"]["layer"]]
 
   def getMaps(self):
@@ -191,9 +174,8 @@ class Catalog:
       return candidates[0]
 
   def getStyles(self):
-    description = getJSON("%s/styles.json" % self.service_url)
-    return [Style(s) for s in description["styles"]["style"]]
-    return description
+    description = get_xml("%s/styles.xml" % self.service_url)
+    return [Style(s) for s in description.findall("style")]
   
   def getNamespace(self, id=None, prefix=None, uri=None):
     raise NotImplementedError()
@@ -205,18 +187,22 @@ class Catalog:
     raise NotImplementedError()
 
   def getWorkspaces(self):
-    description = getJSON("%s/workspaces.json" % self.service_url)
-    return [Workspace(ws["name"], ws["href"]) for ws in description["workspaces"]["workspace"]]
+    description = get_xml("%s/workspaces.xml" % self.service_url)
+    def extract_ws(node):
+        name = node.find("name").text
+        href = node.find("{http://www.w3.org/2005/Atom}link").get("href")
+        return Workspace(name, href)
+    return [extract_ws(node) for node in description.findall("workspace")]
 
   def getWorkspace(self, name):
-    href = "%s/workspaces/%s.json" % (self.service_url, name)
-    response = getJSON(href)
-    ws = response["workspace"]
-    return Workspace(ws["name"], href)
+    href = "%s/workspaces/%s.xml" % (self.service_url, name)
+    ws  = get_xml(href)
+    name = ws.find("name").text
+    # href = ws.find("{http://www.w3.org/2005/Atom}link").get("href").text
+    return Workspace(name, href)
 
   def getDefaultWorkspace(self):
     return self.getWorkspace("default")
 
   def setDefaultWorkspace(self):
     raise NotImplementedError()
-

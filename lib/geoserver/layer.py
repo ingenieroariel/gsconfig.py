@@ -1,3 +1,8 @@
+from urllib2 import HTTPError
+from geoserver.support import get_xml
+from geoserver.style import Style
+from geoserver.resource import FeatureType, Coverage
+
 class Layer: 
   def __init__(self, params):
     self.name = params["name"]
@@ -6,7 +11,7 @@ class Layer:
 
   def update(self):
     try: 
-      layer = getJSON(self.href)["layer"]
+      layer = get_xml(self.href)["layer"]
       self.name = layer["name"]
       self.attribution = layer["attribution"]
       self.enabled = layer["enabled"]
@@ -20,5 +25,3 @@ class Layer:
 
   def __repr__(self):
     return "Layer[%s]" % self.name
-
-

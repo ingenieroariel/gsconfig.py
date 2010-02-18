@@ -44,23 +44,46 @@ class CatalogTests(unittest.TestCase):
     self.assertEqual(22, len(self.cat.getStyles()))
     self.assertEqual("population", self.cat.getStyle("population").name)
 
-  def testSave(self):
-    #test saving round trip
+
+class ModifyingTests(unittest.TestCase):
+  def setUp(self):
+    self.cat = Catalog("http://localhost:8080/geoserver/rest")
+
+  def testFeatureTypeSave(self):
+    # test saving round trip
     rs = self.cat.getResource("bugsites")
-    old_abstract = rs.get('abstract')
+    old_abstract = rs.abstract
     new_abstract = "Not the original abstract"
 
-    #Change abstract on server
-    rs.set('abstract', new_abstract)
+    # Change abstract on server
+    rs.abstract = new_abstract
     self.cat.save(rs)
     rs = self.cat.getResource("bugsites")
-    self.assertEqual(new_abstract, rs.get('abstract'))
+    self.assertEqual(new_abstract, rs.abstract)
 
-    #Restore abstract
-    rs.set('abstract', old_abstract)
+    # Restore abstract
+    rs.abstract = old_abstract
     self.cat.save(rs)
     rs = self.cat.getResource("bugsites")
-    self.assertEqual(old_abstract, rs.get('abstract'))
+    self.assertEqual(old_abstract, rs.abstract)
+
+  def testCoverageSave(self):
+    # test saving round trip
+    rs = self.cat.getResource("Arc_Sample")
+    old_abstract = rs.abstract
+    new_abstract = "Not the original abstract"
+
+    # # Change abstract on server
+    rs.abstract = new_abstract
+    self.cat.save(rs)
+    rs = self.cat.getResource("Arc_Sample")
+    self.assertEqual(new_abstract, rs.abstract)
+
+    # Restore abstract
+    rs.abstract = old_abstract
+    self.cat.save(rs)
+    rs = self.cat.getResource("Arc_Sample")
+    self.assertEqual(old_abstract, rs.abstract)
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
-import json
 from pprint import pprint as pp
 from urllib2 import urlopen, HTTPError
 import httplib2
+import json
 import re
 
 from geoserver.resource import FeatureType, Coverage
@@ -47,8 +47,10 @@ class Catalog:
     url = object.getUrl(self.service_url)
     objectJson = object.serialize()
 
-    headers = {"Content-type": "text/json",
-                "Accept": "text/json"}
+    headers = {
+        "Content-type": "text/json",
+        "Accept": "text/json"
+    }
 
     http = httplib2.Http()
     http.add_credentials(username,password) #factor out these credentials

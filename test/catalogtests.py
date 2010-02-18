@@ -7,7 +7,7 @@ class CatalogTests(unittest.TestCase):
 
   def testWorkspaces(self):
     self.assertEqual(7, len(self.cat.getWorkspaces()))
-    self.assertEqual("topp", self.cat.getDefaultWorkspace().name)
+    self.assertEqual("nurc", self.cat.getDefaultWorkspace().name)
     self.assertEqual("topp", self.cat.getWorkspace("topp").name)
 
   def testStores(self):

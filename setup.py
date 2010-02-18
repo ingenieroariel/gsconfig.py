@@ -10,6 +10,7 @@ setup(name = "GSConfig",
     url = "http://bitbucket.org/dwins/gsconfigpy",
     author = "David Winslow, Sebastian Benthall",
     author_email = "dwinslow@opengeo.org",
+    requires = ['httplib2'],
     package_dir = {'':'lib'},
     test_suite = "test.catalogtests"
 ) 

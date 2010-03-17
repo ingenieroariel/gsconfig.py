@@ -15,8 +15,6 @@ TODOS
 Sample Layer Creation Code
 ==========================
 
-.. code-block::
-    
     from geoserver.catalog import Catalog
     cat = Catalog("http://localhost:8080/geoserver/")
     topp = self.cat.get_workspace("topp")

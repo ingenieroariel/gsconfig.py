@@ -99,5 +99,12 @@ class ModifyingTests(unittest.TestCase):
     for k, v in expected.iteritems():
       self.assertEqual(v, shapefile_plus_boxcars[k])
 
+    sf = self.cat.get_workspace("sf")
+    ft = self.cat.create_datastore("states", shapefile_plus_boxcars, sf)
+
+    # Will throw exception if the resource isn't found; no explicit assertion
+    # needed
+    self.cat.get_resource("states", workspace=sf) 
+
 if __name__ == "__main__":
   unittest.main()

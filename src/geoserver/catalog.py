@@ -44,18 +44,18 @@ class Catalog:
     then POSTS the request.
     """
     url = object.get_url(self.service_url)
-    objectJson = object.serialize()
+    message = object.serialize()
     headers = {
       "Content-type": "application/xml",
       "Accept": "application/xml"
     }
-    response = self.http.request(url, "PUT", objectJson, headers)
+    response = self.http.request(url, "PUT", message, headers)
     return response
 
-  def getStore(self, name, workspace=None):
+  def get_store(self, name, workspace=None):
     if workspace is None:
-      workspaces = self.getWorkspaces()
-      stores = [self.getStore(workspace=ws, name=name) for ws in workspaces]
+      workspaces = self.get_workspaces()
+      stores = [self.get_store(workspace=ws, name=name) for ws in workspaces]
       stores = filter(lambda x: x is not None, stores)
       if len(stores) == 0:
         return None
@@ -79,7 +79,7 @@ class Catalog:
 
     raise NotImplementedError()
 
-  def getStores(self, workspace=None):
+  def get_stores(self, workspace=None):
     if workspace is not None:
       stores = []
       ds_url = "%s/workspaces/%s/datastores.xml" % (self.service_url, workspace.name)
@@ -103,15 +103,15 @@ class Catalog:
       return stores
     else:
       stores = []
-      for ws in self.getWorkspaces():
-        a = self.getStores(ws)
+      for ws in self.get_workspaces():
+        a = self.get_stores(ws)
         stores.extend(a)
 
       return stores
 
-  def getResource(self, name, store=None, workspace=None):
+  def get_resource(self, name, store=None, workspace=None):
     if store is not None:
-      candidates = filter(lambda x: x.name == name, store.getResources())
+      candidates = filter(lambda x: x.name == name, store.get_resources())
       if len(candidates) == 0:
         return None
       elif len(candidates) > 1:
@@ -120,73 +120,73 @@ class Catalog:
         return candidates[0]
 
     if workspace is not None:
-      for store in self.getStores(workspace):
-        resource = self.getResource(name, store)
+      for store in self.get_stores(workspace):
+        resource = self.get_resource(name, store)
         if resource is not None:
           return resource
       return None
 
-    for ws in self.getWorkspaces():
-      resource = self.getResource(name, workspace=ws)
+    for ws in self.get_workspaces():
+      resource = self.get_resource(name, workspace=ws)
       if resource is not None:
         return resource
     return None
 
-  def getResources(self, store=None, workspace=None, namespace=None):
+  def get_resources(self, store=None, workspace=None, namespace=None):
     if store is not None:
-      return store.getResources()
+      return store.get_resources()
     if workspace is not None:
       resources = []
-      for store in self.getStores(workspace):
-        resources.extend(self.getResources(store))
+      for store in self.get_stores(workspace):
+        resources.extend(self.get_resources(store))
       return resources
     resources = []
-    for ws in self.getWorkspaces():
-      resources.extend(self.getResources(workspace=ws))
+    for ws in self.get_workspaces():
+      resources.extend(self.get_resources(workspace=ws))
     return resources
 
-  def getLayer(self, id=None, name=None):
+  def get_layer(self, id=None, name=None):
     raise NotImplementedError()
 
-  def getLayers(self, resource=None, style=None):
+  def get_layers(self, resource=None, style=None):
     description = get_xml("%s/layers.xml" % self.service_url)
     return [Layer(l) for l in description["layers"]["layer"]]
 
-  def getMaps(self):
+  def get_maps(self):
     raise NotImplementedError()
 
-  def getMap(self, id=None, name=None):
+  def get_map(self, id=None, name=None):
     raise NotImplementedError()
 
-  def getLayerGroup(self, id=None, name=None):
+  def get_layergroup(self, id=None, name=None):
     raise NotImplementedError()
 
-  def getLayerGroups(self):
+  def get_layergroups(self):
     raise NotImplementedError()
 
-  def getStyle(self, name):
-    candidates = filter(lambda x: x.name == name, self.getStyles())
+  def get_style(self, name):
+    candidates = filter(lambda x: x.name == name, self.get_styles())
     if len(candidates) == 0:
       return None
     elif len(candidates) > 1:
-      raise AmbiguousRequestError
+      raise AmbiguousRequestError()
     else:
       return candidates[0]
 
-  def getStyles(self):
+  def get_styles(self):
     description = get_xml("%s/styles.xml" % self.service_url)
     return [Style(s) for s in description.findall("style")]
   
-  def getNamespace(self, id=None, prefix=None, uri=None):
+  def get_namespace(self, id=None, prefix=None, uri=None):
     raise NotImplementedError()
 
-  def getDefaultNamespace(self):
+  def get_default_namespace(self):
     raise NotImplementedError()
 
-  def setDefaultNamespace(self):
+  def set_default_namespace(self):
     raise NotImplementedError()
 
-  def getWorkspaces(self):
+  def get_workspaces(self):
     description = get_xml("%s/workspaces.xml" % self.service_url)
     def extract_ws(node):
         name = node.find("name").text
@@ -194,15 +194,15 @@ class Catalog:
         return Workspace(name, href)
     return [extract_ws(node) for node in description.findall("workspace")]
 
-  def getWorkspace(self, name):
+  def get_workspace(self, name):
     href = "%s/workspaces/%s.xml" % (self.service_url, name)
     ws  = get_xml(href)
     name = ws.find("name").text
     # href = ws.find("{http://www.w3.org/2005/Atom}link").get("href").text
     return Workspace(name, href)
 
-  def getDefaultWorkspace(self):
-    return self.getWorkspace("default")
+  def get_default_workspace(self):
+    return self.get_workspace("default")
 
-  def setDefaultWorkspace(self):
+  def set_default_workspace(self):
     raise NotImplementedError()

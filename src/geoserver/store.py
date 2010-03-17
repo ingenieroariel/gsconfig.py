@@ -31,7 +31,7 @@ class DataStore:
     ]
     self.feature_type_url = atom_link(node.find("featureTypes"))
 
-  def getResources(self):
+  def get_resources(self):
     node = get_xml(self.feature_type_url)
     types = node.findall("featureType")
     return [FeatureType(ft, self) for ft in types]
@@ -66,7 +66,7 @@ class CoverageStore(ResourceInfo):
     self.data_url = self.metadata.find("url").text
     self.coverage_url = atom_link(self.metadata.find("coverages"))
 
-  def getResources(self):
+  def get_resources(self):
     response = get_xml(self.coverage_url)
     types = response.findall("coverage")
     return [Coverage(cov, self) for cov in types]

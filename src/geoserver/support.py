@@ -1,5 +1,7 @@
 from xml.etree.ElementTree import TreeBuilder, XML, tostring
+from tempfile import mkstemp
 from urllib2 import urlopen, HTTPPasswordMgr, HTTPBasicAuthHandler, install_opener, build_opener
+from zipfile import ZipFile
 
 class ResourceInfo(object):
   resource_type = 'abstractResourceType'
@@ -22,6 +24,25 @@ class ResourceInfo(object):
     """
     pass
 
+def prepare_shapefile_bundle(name, data):
+  """Create a ZIP archive with a shapefile and accompanying metadata for upload\
+ to GeoServer. GeoServer expects all files in the top directory level of the\
+ ZIP archive, with the basename the same as that of the layer to be created.\
+ The first argument to this function provides that expected layer name, and the\
+ second should be a dict mapping Shapefile file extensions to filesystem paths,\
+ or to file-like objects.  The function geoserver.util.shapefile_and_friends\
+ can generate such a dict for actual files.  This actually creates a temporary\
+ file, which client code should delete after use."""
+  f = mkstemp()
+  zip = ZipFile(f, 'w')
+  for ext, stream in data.iteritems():
+    fname = "%s.%s" % (name, ext)
+    if (isinstance(stream, basestring)):
+      zip.write(stream, fname)
+    else:
+      zip.writestr(fname, stream.read())
+  zip.close()
+  return f
 
 def get_xml(url):
   password_manager = HTTPPasswordMgr()

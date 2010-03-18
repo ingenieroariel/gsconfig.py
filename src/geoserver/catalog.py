@@ -150,7 +150,7 @@ class Catalog:
 
   def get_layers(self, resource=None, style=None):
     description = get_xml("%s/layers.xml" % self.service_url)
-    return [Layer(l) for l in description["layers"]["layer"]]
+    return [Layer(l) for l in description.findall("layer")]
 
   def get_maps(self):
     raise NotImplementedError()

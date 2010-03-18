@@ -5,10 +5,12 @@ class CatalogTests(unittest.TestCase):
   def setUp(self):
     self.cat = Catalog("http://localhost:8080/geoserver/rest")
 
+
   def testWorkspaces(self):
     self.assertEqual(7, len(self.cat.get_workspaces()))
     self.assertEqual("nurc", self.cat.get_default_workspace().name)
     self.assertEqual("topp", self.cat.get_workspace("topp").name)
+
 
   def testStores(self):
     topp = self.cat.get_workspace("topp")
@@ -20,6 +22,7 @@ class CatalogTests(unittest.TestCase):
     self.assertEqual("states_shapefile", self.cat.get_store("states_shapefile").name)
     self.assertEqual("sfdem", self.cat.get_store("sfdem", sf).name)
     self.assertEqual("sfdem", self.cat.get_store("sfdem").name)
+
   
   def testResources(self):
     topp = self.cat.get_workspace("topp")
@@ -40,6 +43,22 @@ class CatalogTests(unittest.TestCase):
     self.assertEqual("sfdem", self.cat.get_resource("sfdem", workspace=sf).name)
     self.assertEqual("sfdem", self.cat.get_resource("sfdem").name)
 
+
+  def testLayers(self):
+    expected = set(["Arc_Sample", "Pk50095", "Img_Sample", "mosaic", "sfdem",
+      "bugsites", "restricted", "streams", "archsites", "roads",
+      "tasmania_roads", "tasmania_water_bodies", "tasmania_state_boundaries",
+      "tasmania_cities", "states", "poly_landmarks", "tiger_roads", "poi",
+      "giant_polygon"
+    ])
+
+    actual = set(l.name for l in self.cat.get_layers())
+    missing = expected - actual
+    extras = actual - expected
+    message = "Actual layer list did not match expected! (Extras: %s) (Missing: %s)" % (extras, missing)
+    self.assert_(len(expected ^ actual) == 0, message)
+
+
   def testStyles(self):
     self.assertEqual(22, len(self.cat.get_styles()))
     self.assertEqual("population", self.cat.get_style("population").name)
@@ -48,6 +67,7 @@ class CatalogTests(unittest.TestCase):
 class ModifyingTests(unittest.TestCase):
   def setUp(self):
     self.cat = Catalog("http://localhost:8080/geoserver/rest")
+
 
   def testFeatureTypeSave(self):
     # test saving round trip
@@ -66,6 +86,7 @@ class ModifyingTests(unittest.TestCase):
     self.cat.save(rs)
     rs = self.cat.get_resource("bugsites")
     self.assertEqual(old_abstract, rs.abstract)
+
 
   def testCoverageSave(self):
     # test saving round trip

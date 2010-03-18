@@ -33,7 +33,8 @@ def prepare_shapefile_bundle(name, data):
  or to file-like objects.  The function geoserver.util.shapefile_and_friends\
  can generate such a dict for actual files.  This actually creates a temporary\
  file, which client code should delete after use."""
-  f = mkstemp()
+
+  handle, f = mkstemp() # we don't use the file handle directly. should we?
   zip = ZipFile(f, 'w')
   for ext, stream in data.iteritems():
     fname = "%s.%s" % (name, ext)
@@ -58,9 +59,9 @@ def get_xml(url):
   
   response = urlopen(url).read()
   try:
-      return XML(response)
+    return XML(response)
   except:
-      print "%s => \n%s" % (url, response)
+    print "%s => \n%s" % (url, response)
 
 def atom_link(node):
-    return node.find("{http://www.w3.org/2005/Atom}link").get("href")
+  return node.find("{http://www.w3.org/2005/Atom}link").get("href")

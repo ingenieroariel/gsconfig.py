@@ -1,11 +1,12 @@
-import httplib2
-
 from geoserver.layer import Layer
 from geoserver.store import DataStore, CoverageStore
 from geoserver.style import Style
-from geoserver.support import get_xml
+from geoserver.support import get_xml, prepare_shapefile_bundle
 from geoserver.workspace import Workspace
+
+from os import unlink
 from urllib2 import HTTPError
+import httplib2
 
 class AmbiguousRequestError(Exception):
   pass 
@@ -84,7 +85,6 @@ class Catalog:
       stores = []
       ds_url = "%s/workspaces/%s/datastores.xml" % (self.service_url, workspace.name)
       cs_url = "%s/workspaces/%s/coveragestores.xml" % (self.service_url, workspace.name)
-
       try: 
         response = get_xml(ds_url)
         ds_list = response.findall("dataStore")
@@ -92,22 +92,37 @@ class Catalog:
       except HTTPError, e:
         print e
         pass
-
       try: 
         response = get_xml(cs_url)
         cs_list = response.findall("coverageStore")
         stores.extend([CoverageStore(store, workspace) for store in cs_list])
       except HTTPError, e:
         pass
-
       return stores
     else:
       stores = []
       for ws in self.get_workspaces():
         a = self.get_stores(ws)
         stores.extend(a)
-
       return stores
+
+  def create_featurestore(self, name, data, workspace=None):
+    if workspace is None:
+      workspace = self.get_default_workspace()
+    ds_url = "%s/workspaces/%s/datastores/%s/file.shp" % (self.service_url, workspace.name, name)
+    # PUT /workspaces/<ws>/datastores/<ds>/file.shp
+    headers = {
+      "Content-type": "application/zip",
+      "Accept": "application/xml"
+    }
+    zip = prepare_shapefile_bundle(name, data)
+    message = open(zip).read()
+    try:
+      response = self.http.request(ds_url, "PUT", message, headers)
+    except Exception, e:
+      print e
+
+    unlink(zip)
 
   def get_resource(self, name, store=None, workspace=None):
     if store is not None:

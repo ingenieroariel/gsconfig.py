@@ -1,6 +1,5 @@
 import unittest
 from geoserver.catalog import Catalog
-from geoserver.util import shapefile_and_friends
 
 class CatalogTests(unittest.TestCase):
   def setUp(self):
@@ -86,18 +85,6 @@ class ModifyingTests(unittest.TestCase):
     rs = self.cat.get_resource("Arc_Sample")
     self.assertEqual(old_abstract, rs.abstract)
 
-  def testFeatureTypeCreate(self):
-    shapefile_plus_boxcars = shapefile_and_friends("test/data/states")
-    expected = {
-      'shp': 'test/data/states.shp',
-      'shx': 'test/data/states.shx',
-      'dbf': 'test/data/states.dbf',
-      'prj': 'test/data/states.prj'
-    }
-
-    self.assertEqual(len(expected), len(shapefile_plus_boxcars))
-    for k, v in expected.iteritems():
-      self.assertEqual(v, shapefile_plus_boxcars[k])
 
 if __name__ == "__main__":
   unittest.main()

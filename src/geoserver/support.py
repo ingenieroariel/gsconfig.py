@@ -54,8 +54,8 @@ def delete(url):
   h.add_credentials('admin', 'geoserver')
   try:
     h.request(url,"DELETE")
-  except HTTPError:
-    print e.geturl()
+  except:
+    print "something went wrong"
 
 def atom_link(node):
     return node.find("{http://www.w3.org/2005/Atom}link").get("href")

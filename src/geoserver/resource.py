@@ -10,7 +10,8 @@ class FeatureType(ResourceInfo):
 
   def update(self):
     ResourceInfo.update(self)
-    self.abstract = self.metadata.find("abstract").text
+    self.abstract = self.metadata.find("abstract")
+    self.abstract = self.abstract.text if self.abstract is not None else None
 
   def encode(self, builder):
     builder.start("abstract", dict())
@@ -36,7 +37,8 @@ class Coverage(ResourceInfo):
 
   def update(self):
     ResourceInfo.update(self)
-    self.abstract = self.metadata.find("description").text
+    self.abstract = self.metadata.find("description")
+    self.abstract = self.abstract.text if self.abstract is not None else None
 
   def encode(self, builder):
     builder.start("description", dict())

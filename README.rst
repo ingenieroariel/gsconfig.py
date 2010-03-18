@@ -6,8 +6,6 @@ gsconfig.py is a python library for manipulating a GeoServer instance via the Ge
 TODOS
 =====
 
-* Move code over to github
-* Unify code to use XML
 * Add support for adding and removing data from GeoServer
 * Maintain test coverage
 
@@ -31,7 +29,7 @@ Sample Layer Creation Code
     #    'dbf': 'states.dbf'
     # }
     
-    # 'data' is required
-    # 'workspace' is optional (GeoServer's default workspace is used by default)
+    # 'data' is required (there may be a 'schema' alternative later, for creating empty featuretypes)
+    # 'workspace' is optional (GeoServer's default workspace is used by... default)
     # 'name' is required
     ft = self.cat.create_featuretype(name, workspace=topp, data=shapefile_plus_boxcars)

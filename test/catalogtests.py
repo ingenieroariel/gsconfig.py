@@ -106,5 +106,19 @@ class ModifyingTests(unittest.TestCase):
     # needed
     self.cat.get_resource("states", workspace=sf) 
 
+  def testCoverageCreate(self):
+    tiffdata = {
+      'tiff': 'test/data/Pk50095.tif',
+      'tfw':  'test/data/Pk50095.tfw',
+      'prj':  'test/data/Pk50095.prj'
+    }
+
+    sf = self.cat.get_workspace("sf")
+    ft = self.cat.create_coveragestore("Pk50095", tiffdata, sf)
+
+    # Will throw exception if the resource isn't found; no explicit assertion
+    # needed
+    self.cat.get_resource("Pk50095", workspace=sf) 
+
 if __name__ == "__main__":
   unittest.main()

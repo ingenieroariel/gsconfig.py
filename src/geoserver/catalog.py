@@ -1,7 +1,7 @@
 from geoserver.layer import Layer
 from geoserver.store import DataStore, CoverageStore
 from geoserver.style import Style
-from geoserver.support import get_xml, prepare_shapefile_bundle
+from geoserver.support import get_xml, prepare_upload_bundle
 from geoserver.workspace import Workspace
 
 from os import unlink
@@ -115,14 +115,40 @@ class Catalog:
       "Content-type": "application/zip",
       "Accept": "application/xml"
     }
-    zip = prepare_shapefile_bundle(name, data)
+    zip = prepare_upload_bundle(name, data)
     message = open(zip).read()
     try:
       response = self.http.request(ds_url, "PUT", message, headers)
-    except Exception, e:
-      print e
+    finally:
+      unlink(zip)
 
-    unlink(zip)
+  def create_coveragestore(self, name, data, workspace=None):
+    if workspace is None:
+      workspace = self.get_default_workspace()
+    headers = {
+      "Content-type": "application/zip",
+      "Accept": "application/xml"
+    }
+
+    zip = None
+    ext = "geotiff"
+
+    if isinstance(data, dict):
+      zip = prepare_upload_bundle(name, data)
+      message = open(zip).read()
+      if "tfw" in data:
+        ext = "worldimage"
+    elif isinstance(data, basestring):
+      message = open(data).read()
+    else:
+      message = data.read()
+
+    cs_url = "%s/workspaces/%s/coveragestores/%s/file.%s" % (self.service_url, workspace.name, name, ext)
+    try:
+      response = self.http.request(cs_url, "PUT", message, headers)
+    finally:
+      if zip is not None:
+        unlink(zip)
 
   def get_resource(self, name, store=None, workspace=None):
     if store is not None:

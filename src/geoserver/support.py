@@ -1,5 +1,6 @@
 from xml.etree.ElementTree import TreeBuilder, XML, tostring
 from urllib2 import urlopen, HTTPPasswordMgr, HTTPBasicAuthHandler, install_opener, build_opener
+import httplib2
 
 class ResourceInfo(object):
   resource_type = 'abstractResourceType'
@@ -24,6 +25,9 @@ class ResourceInfo(object):
 
 
 def get_xml(url):
+  """
+  XXX remove hard coded username and password 
+  """
   password_manager = HTTPPasswordMgr()
   password_manager.add_password(
     realm='GeoServer Realm',
@@ -40,6 +44,18 @@ def get_xml(url):
       return XML(response)
   except:
       print "%s => \n%s" % (url, response)
+
+def delete(url):
+  """
+  delete method
+  XXX remove httplib2 
+  """
+  h = httplib2.Http(".cache")
+  h.add_credentials('admin', 'geoserver')
+  try:
+    h.request(url,"DELETE")
+  except HTTPError:
+    print e.geturl()
 
 def atom_link(node):
     return node.find("{http://www.w3.org/2005/Atom}link").get("href")

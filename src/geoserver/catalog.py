@@ -69,11 +69,11 @@ class Catalog:
 
       try:
         store = get_xml(ds_url)
-        return DataStore(store, workspace)
+        return DataStore(self,store, workspace)
       except HTTPError:
         try:
           store = get_xml(cs_url)
-          return CoverageStore(store, workspace)
+          return CoverageStore(self,store, workspace)
         except HTTPError:
           return None
 
@@ -88,7 +88,7 @@ class Catalog:
       try: 
         response = get_xml(ds_url)
         ds_list = response.findall("dataStore")
-        stores.extend([DataStore(store, workspace) for store in ds_list])
+        stores.extend([DataStore(self,store, workspace) for store in ds_list])
       except HTTPError, e:
         print e
         pass
@@ -96,7 +96,7 @@ class Catalog:
       try: 
         response = get_xml(cs_url)
         cs_list = response.findall("coverageStore")
-        stores.extend([CoverageStore(store, workspace) for store in cs_list])
+        stores.extend([CoverageStore(self,store, workspace) for store in cs_list])
       except HTTPError, e:
         pass
 
@@ -191,7 +191,7 @@ class Catalog:
     def extract_ws(node):
         name = node.find("name").text
         href = node.find("{http://www.w3.org/2005/Atom}link").get("href")
-        return Workspace(name, href)
+        return Workspace(self,name, href)
     return [extract_ws(node) for node in description.findall("workspace")]
 
   def get_workspace(self, name):
@@ -199,7 +199,7 @@ class Catalog:
     ws  = get_xml(href)
     name = ws.find("name").text
     # href = ws.find("{http://www.w3.org/2005/Atom}link").get("href").text
-    return Workspace(name, href)
+    return Workspace(self,name, href)
 
   def get_default_workspace(self):
     return self.get_workspace("default")

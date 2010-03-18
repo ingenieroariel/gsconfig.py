@@ -1,7 +1,7 @@
 from urllib2 import HTTPError
 from geoserver.support import get_xml
 from geoserver.style import Style
-from geoserver.resource import FeatureType, Coverage
+from geoserver.resource import FeatureType, Coverage, delete
 
 class Layer: 
   def __init__(self, params):
@@ -22,6 +22,10 @@ class Layer:
         self.resource = Coverage(layer["resource"])
     except HTTPError, e:
       print e.geturl()
+
+  def delete(self): 
+    url = self.href.replace(".xml","")
+    delete(url)
 
   def __repr__(self):
     return "Layer[%s]" % self.name

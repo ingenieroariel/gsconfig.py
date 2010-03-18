@@ -1,9 +1,11 @@
-from geoserver.support import ResourceInfo, atom_link
+from geoserver.support import ResourceInfo, atom_link, delete
+
 
 class FeatureType(ResourceInfo):
   resource_type = "featureType"
 
-  def __init__(self, node, store=None):
+  def __init__(self,catalog,node, store=None):
+    self.catalog = catalog
     self.href = atom_link(node)
     self.store = store
     self.update()
@@ -17,6 +19,17 @@ class FeatureType(ResourceInfo):
     builder.data(self.abstract)
     builder.end("abstract")
 
+  def delete(self):
+    """
+    Removes a feature from the GeoServer Catalog. Must remove 
+    """
+    # deletes layer 
+    layer_url = "http://localhost:8080/geoserver/rest/layers/"
+    delete(layer_url)
+    # deletes featureType
+    feature_url = self.href.replace(".xml","")
+    delete(feature_url)
+
   def get_url(self, service_url):
     return self.href
 
@@ -26,7 +39,8 @@ class FeatureType(ResourceInfo):
 class Coverage(ResourceInfo):
   resource_type = "coverage"
 
-  def __init__(self, node, store=None):
+  def __init__(self,catalog,node, store=None):
+    self.catalog = catalog
     self.href = atom_link(node)
     self.store = store
     self.update()

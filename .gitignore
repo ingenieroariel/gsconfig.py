@@ -1,2 +1,7 @@
 *.pyc
 src/GSConfig.*
+bin/
+dist/
+include/
+lib/
+lib64

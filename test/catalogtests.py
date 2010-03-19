@@ -38,6 +38,21 @@ class CatalogTests(unittest.TestCase):
     self.assertEqual("states", self.cat.get_resource("states", states).name)
     self.assertEqual("states", self.cat.get_resource("states", workspace=topp).name)
     self.assertEqual("states", self.cat.get_resource("states").name)
+    states = self.cat.get_resource("states")
+
+    fields = [
+        states.title,
+        states.abstract,
+        states.native_bbox,
+        states.latlon_bbox,
+        states.projection,
+        states.projection_policy
+    ]
+
+    self.assertFalse(None in fields, str(fields))
+    self.assertFalse(len(states.keywords) == 0)
+    self.assertFalse(len(states.attributes) == 0)
+    self.assertTrue(states.enabled)
 
     self.assertEqual("sfdem", self.cat.get_resource("sfdem", sfdem).name)
     self.assertEqual("sfdem", self.cat.get_resource("sfdem", workspace=sf).name)

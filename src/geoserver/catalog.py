@@ -7,27 +7,6 @@ from geoserver.support import get_xml
 from geoserver.workspace import Workspace
 from urllib2 import HTTPError
 
-FORCE_DECLARED = "FORCE_DECLARED"
-"""
-The projection handling policy for layers that should use coordinates
-directly while reporting the configured projection to clients.  This should be
-used when projection information is missing from the underlying datastore.
-"""
-
-FORCE_NATIVE = "FORCE_NATIVE"
-"""
-The projection handling policy for layers that should use the projection
-information from the underlying storage mechanism directly, and ignore the
-projection setting.
-"""
-
-REPROJECT = "REPROJECT"
-"""
-The projection handling policy for layers that should use the projection
-information from the underlying storage mechanism to reproject to the
-configured projection.
-"""
-
 class AmbiguousRequestError(Exception):
   pass 
 

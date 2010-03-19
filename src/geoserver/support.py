@@ -1,6 +1,29 @@
 from xml.etree.ElementTree import TreeBuilder, XML, tostring
 from urllib2 import urlopen, HTTPPasswordMgr, HTTPBasicAuthHandler, install_opener, build_opener
 
+
+FORCE_DECLARED = "FORCE_DECLARED"
+"""
+The projection handling policy for layers that should use coordinates
+directly while reporting the configured projection to clients.  This should be
+used when projection information is missing from the underlying datastore.
+"""
+
+FORCE_NATIVE = "FORCE_NATIVE"
+"""
+The projection handling policy for layers that should use the projection
+information from the underlying storage mechanism directly, and ignore the
+projection setting.
+"""
+
+REPROJECT = "REPROJECT"
+"""
+The projection handling policy for layers that should use the projection
+information from the underlying storage mechanism to reproject to the
+configured projection.
+"""
+
+
 class ResourceInfo(object):
   resource_type = 'abstractResourceType'
 

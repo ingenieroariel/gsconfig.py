@@ -1,4 +1,4 @@
-from geoserver.support import ResourceInfo, atom_link, bbox
+from geoserver.support import ResourceInfo, atom_link, bbox, FORCE_NATIVE, FORCE_DECLARED, REPROJECT
 
 class FeatureType(ResourceInfo):
   resource_type = "featureType"
@@ -52,7 +52,7 @@ class FeatureType(ResourceInfo):
     Should GeoServer expose layers using this data?
     """
 
-    self.metadata = dict()
+    self.extra_config = dict()
     """
     Extra key/value pair storage, for use by GeoServer extensions.
     """
@@ -66,7 +66,10 @@ class FeatureType(ResourceInfo):
     ResourceInfo.update(self)
     title = self.metadata.find("title")
     abstract = self.metadata.find("abstract")
-    keywords = self.metadata.findall("keyword/string")
+    keywords = self.metadata.findall("keywords/string")
+    projection = self.metadata.find("srs")
+    projection_policy = self.metadata.find("projectionPolicy")
+    enabled = self.metadata.find("enabled")
 
     if title is not None:
         self.title = title.text
@@ -78,8 +81,26 @@ class FeatureType(ResourceInfo):
     else:
         self.abstract = None
 
+    if projection is not None:
+        self.projection = projection.text
+    else:
+        self.projection = None
+
+    if projection_policy is not None and projection_policy.text in [REPROJECT, FORCE_NATIVE, FORCE_DECLARED]:
+        self.projection_policy = projection_policy.text
+    else:
+        self.projection_policy = None
+
+    if enabled is not None and enabled.text == "true":
+        self.enabled = True
+    else: 
+        self.enabled = False
+
     self.keywords = [word.text for word in keywords]
     self.latlon_bbox = bbox(self.metadata.find("latLonBoundingBox"))
+    self.native_bbox = (self.metadata.find("nativeBoundingBox"))
+    self.extra_config = dict((entry.attrib["key"], entry.text) for entry in self.metadata.findall("metadata/entry"))
+    self.attributes = [att.text for att in self.metadata.findall("attributes/attribute/name")]
 
   def encode(self, builder):
     builder.start("abstract", dict())

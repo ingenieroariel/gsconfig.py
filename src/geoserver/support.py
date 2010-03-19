@@ -25,7 +25,10 @@ configured projection.
 
 
 class ResourceInfo(object):
+  """A base class for all resource types managed by the catalog """
+
   resource_type = 'abstractResourceType'
+  """A string identifier for the *type* of resource, such as layer or style"""
 
   def update(self):
     self.metadata = get_xml(self.href)

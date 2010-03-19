@@ -43,3 +43,14 @@ def get_xml(url):
 
 def atom_link(node):
     return node.find("{http://www.w3.org/2005/Atom}link").get("href")
+
+def bbox(node):
+    minx = node.find("minx")
+    maxx = node.find("maxx")
+    miny = node.find("miny")
+    maxy = node.find("maxy")
+    crs  = node.find("crs")
+    if (None not in [minx, maxx, miny, maxy, crs]):
+        return (minx.text, maxx.text, miny.text, maxy.text, crs.text)
+    else:
+        return None

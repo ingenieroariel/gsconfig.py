@@ -124,5 +124,23 @@ class ModifyingTests(unittest.TestCase):
     self.assertEqual(old_abstract, rs.abstract)
 
 
+  def testLayerSave(self):
+    # test saving round trip
+    lyr = self.cat.get_layer("states")
+    old_attribution = lyr.attribution
+    new_attribution = "Not the original attribution"
+
+    # change attribution on server
+    lyr.attribution = new_attribution
+    self.cat.save(lyr)
+    lyr = self.cat.get_layer("states")
+    self.assertEqual(new_attribution, lyr.attribution)
+
+    # Restore attribution
+    lyr.attribution = old_attribution
+    self.cat.save(lyr)
+    self.assertEqual(old_attribution, lyr.attribution)
+
+
 if __name__ == "__main__":
   unittest.main()

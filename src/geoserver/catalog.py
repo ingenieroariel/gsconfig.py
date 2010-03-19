@@ -145,8 +145,14 @@ class Catalog:
       resources.extend(self.get_resources(workspace=ws))
     return resources
 
-  def get_layer(self, id=None, name=None):
-    raise NotImplementedError()
+  def get_layer(self, name=None):
+    layers = [l for l in self.get_layers() if l.name == name]
+    if len(layers) == 0:
+      return None
+    elif len(layers) > 1:
+      raise AmbiguousRequestError("%s does not uniquely identify a layer" % name)
+    else:
+      return layers[0]
 
   def get_layers(self, resource=None, style=None):
     description = get_xml("%s/layers.xml" % self.service_url)

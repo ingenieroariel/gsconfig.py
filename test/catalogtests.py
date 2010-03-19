@@ -73,6 +73,8 @@ class CatalogTests(unittest.TestCase):
     message = "Actual layer list did not match expected! (Extras: %s) (Missing: %s)" % (extras, missing)
     self.assert_(len(expected ^ actual) == 0, message)
 
+    self.assert_("states", self.cat.get_layer("states").name)
+
 
   def testStyles(self):
     self.assertEqual(22, len(self.cat.get_styles()))

@@ -24,6 +24,26 @@ class ResourceInfo(object):
     pass
 
 
+def get(url,username=None,password=None): 
+
+  password_manager = HTTPPasswordMgr()
+  password_manager.add_password(
+    realm='GeoServer Realm',
+    uri='http://localhost:8080/geoserver/',
+    user='admin',
+    passwd='geoserver'
+  )
+
+  handler = HTTPBasicAuthHandler(password_manager)
+  install_opener(build_opener(handler))
+  
+  response = urlopen(url).read()
+  try:
+      return response
+  except:
+      print "%s => \n%s" % (url, response)
+
+
 def get_xml(url):
   """
   XXX remove hard coded username and password 

@@ -3,6 +3,7 @@ import httplib2
 from geoserver.layer import Layer
 from geoserver.store import DataStore, CoverageStore
 from geoserver.style import Style
+from geoserver.layergroup import LayerGroup
 from geoserver.support import get_xml
 from geoserver.workspace import Workspace
 from urllib2 import HTTPError
@@ -144,7 +145,7 @@ class Catalog:
     for ws in self.get_workspaces():
       resources.extend(self.get_resources(workspace=ws))
     return resources
-
+  
   def get_layer(self, id=None, name=None):
     raise NotImplementedError()
 
@@ -159,10 +160,12 @@ class Catalog:
     raise NotImplementedError()
 
   def get_layergroup(self, id=None, name=None):
-    raise NotImplementedError()
+    group = get_xml("%s/layergroups/%s.xml" % (self.service_url, name))    
+    return LayerGroup(self, group.find("name").text)
 
   def get_layergroups(self):
-    raise NotImplementedError()
+    groups = get_xml("%s/layergroups.xml" % self.service_url)
+    return [LayerGroup(self, group.find("name").text) for group in groups]
 
   def get_style(self, name):
     candidates = filter(lambda x: x.name == name, self.get_styles())

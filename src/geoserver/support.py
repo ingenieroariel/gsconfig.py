@@ -2,8 +2,34 @@ from xml.etree.ElementTree import TreeBuilder, XML, tostring
 from urllib2 import urlopen, HTTPPasswordMgr, HTTPBasicAuthHandler, install_opener, build_opener
 import httplib2
 
+
+FORCE_DECLARED = "FORCE_DECLARED"
+"""
+The projection handling policy for layers that should use coordinates
+directly while reporting the configured projection to clients.  This should be
+used when projection information is missing from the underlying datastore.
+"""
+
+FORCE_NATIVE = "FORCE_NATIVE"
+"""
+The projection handling policy for layers that should use the projection
+information from the underlying storage mechanism directly, and ignore the
+projection setting.
+"""
+
+REPROJECT = "REPROJECT"
+"""
+The projection handling policy for layers that should use the projection
+information from the underlying storage mechanism to reproject to the
+configured projection.
+"""
+
+
 class ResourceInfo(object):
+  """A base class for all resource types managed by the catalog """
+
   resource_type = 'abstractResourceType'
+  """A string identifier for the *type* of resource, such as layer or style"""
 
   def update(self):
     self.metadata = get_xml(self.href)
@@ -79,3 +105,14 @@ def delete(url):
 
 def atom_link(node):
     return node.find("{http://www.w3.org/2005/Atom}link").get("href")
+
+def bbox(node):
+    minx = node.find("minx")
+    maxx = node.find("maxx")
+    miny = node.find("miny")
+    maxy = node.find("maxy")
+    crs  = node.find("crs")
+    if (None not in [minx, maxx, miny, maxy, crs]):
+        return (minx.text, maxx.text, miny.text, maxy.text, crs.text)
+    else:
+        return None

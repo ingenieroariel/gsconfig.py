@@ -3,7 +3,9 @@ from geoserver.support import ResourceInfo, get_xml, atom_link
 from geoserver.workspace import Workspace
 
 class DataStore:
-  def __init__(self,catalog,node,workspace=None):
+
+  resource_type = 'dataStore'
+  def __init__(self, node, workspace=None):
     self.name = node.find("name").text
     self.catalog = catalog
     if workspace is not None:

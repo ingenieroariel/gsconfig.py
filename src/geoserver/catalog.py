@@ -145,13 +145,19 @@ class Catalog:
     for ws in self.get_workspaces():
       resources.extend(self.get_resources(workspace=ws))
     return resources
-  
-  def get_layer(self, id=None, name=None):
-    raise NotImplementedError()
+
+  def get_layer(self, name=None):
+    layers = [l for l in self.get_layers() if l.name == name]
+    if len(layers) == 0:
+      return None
+    elif len(layers) > 1:
+      raise AmbiguousRequestError("%s does not uniquely identify a layer" % name)
+    else:
+      return layers[0]
 
   def get_layers(self, resource=None, style=None):
     description = get_xml("%s/layers.xml" % self.service_url)
-    return [Layer(l) for l in description["layers"]["layer"]]
+    return [Layer(l) for l in description.findall("layer")]
 
   def get_maps(self):
     raise NotImplementedError()
@@ -165,7 +171,7 @@ class Catalog:
 
   def get_layergroups(self):
     groups = get_xml("%s/layergroups.xml" % self.service_url)
-    return [LayerGroup(self, group.find("name").text) for group in groups]
+    return [LayerGroup(self,group) for group in groups.findall("layerGroup")]
 
   def get_style(self, name):
     candidates = filter(lambda x: x.name == name, self.get_styles())

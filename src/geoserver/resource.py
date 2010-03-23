@@ -289,15 +289,99 @@ class Coverage(ResourceInfo):
     self.native_format = native_format.text if native_format is not None else None
     self.grid = None # TODO: i guess this merits a little class of its own
     self.supported_formats = [format.text for format in doc.findall("supportedFormats/string")]
-    self.default_interpolation_method = default_interpolation_method if default_interpolation_method is not None else None
+    self.default_interpolation_method = default_interpolation_method.text if default_interpolation_method is not None else None
     self.interpolation_methods = [method.text for method in doc.findall("interpolationMethods/string")]
     self.request_srs = request_srs.text if request_srs is not None else None
     self.response_srs = response_srs.text if response_srs is not None else None
 
   def encode(self, builder):
+    builder.start("title", dict())
+    builder.data(self.title)
+    builder.end("title")
+
     builder.start("description", dict())
     builder.data(self.abstract)
     builder.end("description")
+
+    builder.start("keywords", dict())
+    for kw in self.keywords:
+        builder.start("string", dict())
+        builder.data(kw)
+        builder.end("string")
+    builder.end("keywords")
+
+    builder.start("nativeBoundingBox", dict())
+    bbox_xml(builder, self.native_bbox)
+    builder.end("nativeBoundingBox")
+
+    builder.start("latLonBoundingBox", dict())
+    bbox_xml(builder, self.latlon_bbox)
+    builder.end("latLonBoundingBox")
+
+    builder.start("srs", dict())
+    builder.data(self.projection)
+    builder.end("srs")
+
+    builder.start("enabled", dict())
+    if self.enabled:
+        builder.data("true")
+    else:
+        builder.data("false")
+    builder.end("enabled")
+
+    builder.start("metadata", dict())
+    for k, v in self.extra_config.iteritems():
+        builder.start("entry", {'key': k})
+        builder.data(v)
+        builder.end("entry")
+    builder.end("metadata")
+
+    builder.start("dimensions", dict())
+    for dim in self.dimensions:
+        builder.start("coverageDimension", dict())
+        builder.start("name", dict())
+        builder.data(dim)
+        builder.end("name")
+        # Add more details about dimensions
+        builder.end("coverageDimension")
+    builder.end("dimensions")
+
+    builder.start("nativeFormat", dict())
+    builder.data(self.native_format)
+    builder.end("nativeFormat")
+
+    builder.start("supportedFormats", dict())
+    for format in self.supported_formats:
+        builder.start("string", dict())
+        builder.data(format)
+        builder.end("string")
+    builder.end("supportedFormats")
+
+    # TODO: Grid should probably be its own object type
+    # builder.start("grid", {'dimension': '2'})
+    # builder.data(self.grid)
+    # builder.end("grid")
+
+    builder.start("defaultInterpolationMethod", dict())
+    builder.data(self.default_interpolation_method)
+    builder.end("defaultInterpolationMethod")
+
+    builder.start("interpolationMethods", dict())
+    for method in self.interpolation_methods:
+        builder.start("string", dict())
+        builder.data(method)
+        builder.end("string")
+    builder.end("interpolationMethods")
+
+    if self.request_srs is not None:
+        builder.start("requestSRS", dict())
+        builder.data(self.request_srs)
+        builder.end("requestSRS")
+
+    if self.response_srs is not None:
+        builder.start("responseSRS", dict())
+        builder.data(self.response_srs)
+        builder.end("responseSRS")
 
   def __repr__(self):
     return "%s :: %s" % (self.store, self.name)

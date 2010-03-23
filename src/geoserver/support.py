@@ -70,6 +70,15 @@ def get_xml(url):
 def atom_link(node):
     return node.find("{http://www.w3.org/2005/Atom}link").get("href")
 
+def atom_link_xml(builder, href):
+    builder.start("atom:link", {
+        'rel': 'alternate',
+        'href': href,
+        'type': 'application/xml',
+        'xmlns:atom': 'http://www.w3.org/2005/Atom'
+    })
+    builder.end("atom:link")
+
 def bbox(node):
     minx = node.find("minx")
     maxx = node.find("maxx")
@@ -80,3 +89,22 @@ def bbox(node):
         return (minx.text, maxx.text, miny.text, maxy.text, crs.text)
     else:
         return None
+
+def bbox_xml(builder, bbox):
+    minx, maxx, miny, maxy, crs = bbox
+    builder.start("minx", dict())
+    builder.data(minx)
+    builder.end("minx")
+    builder.start("maxx", dict())
+    builder.data(maxx)
+    builder.end("maxx")
+    builder.start("miny", dict())
+    builder.data(miny)
+    builder.end("miny")
+    builder.start("maxy", dict())
+    builder.data(maxy)
+    builder.end("maxy")
+    builder.start("crs", {"class": "projected"})
+    builder.data(crs)
+    builder.end("crs")
+

@@ -1,4 +1,4 @@
-from geoserver.support import ResourceInfo, atom_link, bbox, FORCE_NATIVE, FORCE_DECLARED, REPROJECT
+from geoserver.support import ResourceInfo, atom_link, atom_link_xml, bbox, bbox_xml, FORCE_NATIVE, FORCE_DECLARED, REPROJECT
 
 class FeatureType(ResourceInfo):
   resource_type = "featureType"
@@ -98,15 +98,80 @@ class FeatureType(ResourceInfo):
 
     self.keywords = [word.text for word in keywords]
     self.latlon_bbox = bbox(self.metadata.find("latLonBoundingBox"))
-    self.native_bbox = (self.metadata.find("nativeBoundingBox"))
+    self.native_bbox = bbox(self.metadata.find("nativeBoundingBox"))
     self.extra_config = dict((entry.attrib["key"], entry.text) for entry in self.metadata.findall("metadata/entry"))
     self.attributes = [att.text for att in self.metadata.findall("attributes/attribute/name")]
 
   def encode(self, builder):
+    builder.start("name", dict())
+    builder.data(self.name)
+    builder.end("name")
+
+    builder.start("title", dict())
+    builder.data(self.title)
+    builder.end("title")
+
     builder.start("abstract", dict())
     builder.data(self.abstract)
     builder.end("abstract")
 
+    builder.start("keywords", dict())
+    for kw in self.keywords:
+        builder.start("string", dict())
+        builder.data(kw)
+        builder.end("string")
+    builder.end("keywords")
+
+    builder.start("nativeBoundingBox", dict())
+    bbox_xml(builder, self.native_bbox)
+    builder.end("nativeBoundingBox")
+
+    builder.start("latLonBoundingBox", dict())
+    bbox_xml(builder, self.latlon_bbox)
+    builder.end("latLonBoundingBox")
+
+    # builder.start("nativeCRS", {'class': 'projected'})
+    # builder.data(self.native_crs)
+    # builder.end("nativeCRS")
+
+    builder.start("srs", dict())
+    builder.data(self.projection)
+    builder.end("srs")
+
+    builder.start("enabled", dict())
+    if self.enabled:
+        builder.data("true")
+    else:
+        builder.data("false")
+    builder.end("enabled")
+
+    builder.start("metadata", dict())
+    for k, v in self.extra_config.iteritems():
+        builder.start("entry", {"key": k})
+        builder.data(v)
+        builder.end("entry")
+    builder.end("metadata")
+
+    builder.start("store", {"class": "coverageStore"})
+    builder.start("name", dict())
+    builder.data(self.store.name)
+    builder.end("name")
+    atom_link_xml(builder, self.store.href)
+    builder.end("store")
+
+    builder.start("projectionPolicy", dict())
+    builder.data(self.projection_policy)
+    builder.end("projectionPolicy")
+
+    # builder.start("attributes")
+    # for att in self.attributes:
+    #     builder.start("attribute", dict())
+    #     builder.start("name", dict())
+    #     builder.data(att)
+    #     builder.end("name")
+    #     builder.end("attribute")
+    # builder.end("attributes")
+    
   def get_url(self, service_url):
     return self.href
 

@@ -116,12 +116,13 @@ class FeatureType(ResourceInfo):
         2. If the featureType is in a layer group remove it. 
         3. Remove the 
     """
+    pass 
     # deletes layer 
-    layer_url = "%s/layers/%s" % (self.catalog.service_url,self.name)
-    delete(layer_url)
+    #layer_url = "%s/layers/%s" % (self.catalog.service_url,self.name)
+    #delete(layer_url)
     # deletes featureType
-    feature_url = self.href.replace(".xml","")
-    delete(feature_url)
+    #feature_url = self.href.replace(".xml","")
+    #delete(feature_url)
 
   def get_url(self, service_url):
     return self.href

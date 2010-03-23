@@ -13,7 +13,7 @@ class LayerGroup(ResourceInfo):
     def update(self): 
         ResourceInfo.update(self)
         self.name = self.metadata.find("name").text
-        self.layers = [ Layer(x) for x in self.metadata.findall("layers/layer")] 
+        self.layers = [ Layer(self.catalog,x) for x in self.metadata.findall("layers/layer")] 
         self.styles = self.metadata.find("styles/style")
         self.bounds = self.metadata.find("bounds") 
 

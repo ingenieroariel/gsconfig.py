@@ -119,6 +119,82 @@ class Coverage(ResourceInfo):
   def __init__(self, node, store=None):
     self.href = atom_link(node)
     self.store = store
+    """The store containing this coverage"""
+
+    self.title = None
+    """
+    A short label for this coverage, suitable for use in legends and
+    layer lists
+    """
+
+    self.abstract = None
+    """A natural-language description of the data in this coverage"""
+
+    self.keywords = None
+    """A list of keywords identifying topics related to this coverage"""
+
+    self.native_bbox = None
+    """
+    A tuple of numbers identifying the extent of data in this coverage, in
+    the projection used to actually store the data.  The format is (minx, maxx,
+    miny, maxy).
+    """
+
+    self.latlon_bbox = None
+    """
+    A tuple of number identifying the extent of data in this coverage, in
+    latitude/longitude.  The format is (minx, maxx, miny, maxy).
+    """
+
+    self.projection = None
+    """
+    A string identifying the coordinate system used for the data in this
+    coverage.
+    """
+
+    self.enabled = True
+    """
+    Should GeoServer expose layers using this data?
+    """
+
+    self.extra_config = dict()
+    """
+    Extra key/value pair storage, for use by GeoServer extensions.
+    """
+
+    self.dimensions = []
+    """A list of names of the channels in this coverage, as strings."""
+
+    self.native_format = None
+    """A string identifying the format used to store this coverage"""
+
+    self.grid = None
+    """Information about the resolution and range of the pixels in this raster"""
+
+    self.supported_formats = []
+    """
+    A list of strings identifying formats that may be used to respond to
+    queries against this coverage
+    """
+
+    self.default_interpolation_method = None
+    """
+    A string identifying the interpolation method that will be used if none is
+    specified in a query against this coverage
+    """
+
+    self.interpolation_methods = []
+    """
+    A list of strings identifying interpolation methods that may be used to
+    respond to queries against this coverage
+    """
+
+    self.request_srs = None
+    """ ??? """
+
+    self.response_srs = None
+    """ ??? """
+
     self.update()
 
   def get_url(self, service_url):
@@ -126,8 +202,32 @@ class Coverage(ResourceInfo):
 
   def update(self):
     ResourceInfo.update(self)
-    self.abstract = self.metadata.find("description")
-    self.abstract = self.abstract.text if self.abstract is not None else None
+    doc = self.metadata
+    title = doc.find("title")
+    abstract = doc.find("description")
+    projection = doc.find("srs")
+    enabled = doc.find("enabled")
+    native_format = doc.find("nativeFormat")
+    default_interpolation_method = doc.find("defaultInterpolationMethod")
+    request_srs = doc.find("requestSRS")
+    response_srs = doc.find("responseSRS")
+
+    self.title = title.text if title is not None else None
+    self.abstract = abstract.text if abstract is not None else None
+    self.keywords = [kw.text for kw in doc.findall("keywords/string")]
+    self.native_bbox = bbox(doc.find("nativeBoundingBox"))
+    self.latlon_bbox = bbox(doc.find("latLonBoundingBox"))
+    self.projection = projection.text if projection is not None else None
+    self.enabled = enabled.text == True if enabled is not None else False
+    self.extra_config = dict((entry.attrib['key'], entry.text) for entry in doc.findall("metadata/entry"))
+    self.dimensions = [d.text for d in doc.findall("dimensions/coverageDimension/name")]
+    self.native_format = native_format.text if native_format is not None else None
+    self.grid = None # TODO: i guess this merits a little class of its own
+    self.supported_formats = [format.text for format in doc.findall("supportedFormats/string")]
+    self.default_interpolation_method = default_interpolation_method if default_interpolation_method is not None else None
+    self.interpolation_methods = [method.text for method in doc.findall("interpolationMethods/string")]
+    self.request_srs = request_srs.text if request_srs is not None else None
+    self.response_srs = response_srs.text if response_srs is not None else None
 
   def encode(self, builder):
     builder.start("description", dict())

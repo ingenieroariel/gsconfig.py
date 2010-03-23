@@ -178,6 +178,46 @@ class FeatureType(ResourceInfo):
   def __repr__(self):
     return "%s :: %s" % (self.store, self.name)
 
+class CoverageDimension(object):
+    def __init__(self, name, description, range):
+        self.name = name
+        self.description = description
+        self.range = range
+
+def coverage_dimension(node):
+    name = node.find("name")
+    name = name.text if name is not None else None
+    description = node.find("description")
+    description = description.text if description is not None else None
+    min = node.find("range/min")
+    max = node.find("range/max")
+    range = None
+    if None not in [name, description, min, max]:
+        range = float(min.text), float(max.text)
+        return CoverageDimension(name, description, range)
+    else:
+        return None # should we bomb out more spectacularly here?
+
+def coverage_dimension_xml(builder, dimension):
+    builder.start("coverageDimension", dict())
+    builder.start("name", dict())
+    builder.data(dimension.name)
+    builder.end("name")
+
+    builder.start("description", dict())
+    builder.data(dimension.description)
+    builder.end("description")
+
+    builder.start("range", dict())
+    builder.start("min", dict())
+    builder.data(str(dimension.range[0]))
+    builder.end("min")
+    builder.start("max", dict())
+    builder.data(str(dimension.range[1]))
+    builder.end("max")
+    builder.end("range")
+    builder.end("coverageDimension")
+
 class Coverage(ResourceInfo):
   resource_type = "coverage"
 
@@ -274,8 +314,8 @@ class Coverage(ResourceInfo):
     enabled = doc.find("enabled")
     native_format = doc.find("nativeFormat")
     default_interpolation_method = doc.find("defaultInterpolationMethod")
-    request_srs = doc.find("requestSRS")
-    response_srs = doc.find("responseSRS")
+    request_srs = doc.find("requestSRS/string")
+    response_srs = doc.find("responseSRS/string")
 
     self.title = title.text if title is not None else None
     self.abstract = abstract.text if abstract is not None else None
@@ -283,9 +323,9 @@ class Coverage(ResourceInfo):
     self.native_bbox = bbox(doc.find("nativeBoundingBox"))
     self.latlon_bbox = bbox(doc.find("latLonBoundingBox"))
     self.projection = projection.text if projection is not None else None
-    self.enabled = enabled.text == True if enabled is not None else False
+    self.enabled = enabled.text == "true" if enabled is not None else False
     self.extra_config = dict((entry.attrib['key'], entry.text) for entry in doc.findall("metadata/entry"))
-    self.dimensions = [d.text for d in doc.findall("dimensions/coverageDimension/name")]
+    self.dimensions = [coverage_dimension(d) for d in doc.findall("dimensions/coverageDimension")]
     self.native_format = native_format.text if native_format is not None else None
     self.grid = None # TODO: i guess this merits a little class of its own
     self.supported_formats = [format.text for format in doc.findall("supportedFormats/string")]
@@ -338,12 +378,7 @@ class Coverage(ResourceInfo):
 
     builder.start("dimensions", dict())
     for dim in self.dimensions:
-        builder.start("coverageDimension", dict())
-        builder.start("name", dict())
-        builder.data(dim)
-        builder.end("name")
-        # Add more details about dimensions
-        builder.end("coverageDimension")
+        coverage_dimension_xml(builder, dim)
     builder.end("dimensions")
 
     builder.start("nativeFormat", dict())
@@ -373,15 +408,17 @@ class Coverage(ResourceInfo):
         builder.end("string")
     builder.end("interpolationMethods")
 
-    if self.request_srs is not None:
-        builder.start("requestSRS", dict())
-        builder.data(self.request_srs)
-        builder.end("requestSRS")
+    builder.start("requestSRS", dict())
+    builder.start("string", dict())
+    builder.data(self.request_srs)
+    builder.end("string")
+    builder.end("requestSRS")
 
-    if self.response_srs is not None:
-        builder.start("responseSRS", dict())
-        builder.data(self.response_srs)
-        builder.end("responseSRS")
+    builder.start("responseSRS", dict())
+    builder.start("string", dict())
+    builder.data(self.response_srs)
+    builder.end("string")
+    builder.end("responseSRS")
 
   def __repr__(self):
     return "%s :: %s" % (self.store, self.name)

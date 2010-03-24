@@ -3,16 +3,20 @@ from geoserver.support import ResourceInfo, get_xml, atom_link
 from geoserver.workspace import Workspace
 
 class DataStore:
+  resource_type = 'dataStore'
+
   def __init__(self,catalog,node,workspace=None):
     self.name = node.find("name").text
     self.catalog = catalog
     if workspace is not None:
-        self.workspace = workspace
+      self.workspace = workspace
     else:
         ws = node.find("workspace/name").text
         href = node.find("workspace/{http://www.w3.org/2005/Atom}link").get("href")
         self.workspace = Workspace(self.catalog,ws, href)
-
+      ws = node.find("workspace/name").text
+      href = node.find("workspace/{http://www.w3.org/2005/Atom}link").get("href")
+      self.workspace = Workspace(ws, href)
     link = node.find("{http://www.w3.org/2005/Atom}link")
     if link is not None and "href" in link.attrib:
       self.href = link.attrib["href"]

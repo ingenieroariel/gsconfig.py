@@ -1,11 +1,12 @@
-import httplib2
-
 from geoserver.layer import Layer
 from geoserver.store import DataStore, CoverageStore
 from geoserver.style import Style
-from geoserver.support import get_xml
+from geoserver.support import get_xml, prepare_upload_bundle
 from geoserver.workspace import Workspace
+
+from os import unlink
 from urllib2 import HTTPError
+import httplib2
 
 class AmbiguousRequestError(Exception):
   pass 
@@ -84,7 +85,6 @@ class Catalog:
       stores = []
       ds_url = "%s/workspaces/%s/datastores.xml" % (self.service_url, workspace.name)
       cs_url = "%s/workspaces/%s/coveragestores.xml" % (self.service_url, workspace.name)
-
       try: 
         response = get_xml(ds_url)
         ds_list = response.findall("dataStore")
@@ -92,22 +92,63 @@ class Catalog:
       except HTTPError, e:
         print e
         pass
-
       try: 
         response = get_xml(cs_url)
         cs_list = response.findall("coverageStore")
         stores.extend([CoverageStore(self,store, workspace) for store in cs_list])
       except HTTPError, e:
         pass
-
       return stores
     else:
       stores = []
       for ws in self.get_workspaces():
         a = self.get_stores(ws)
         stores.extend(a)
-
       return stores
+
+  def create_featurestore(self, name, data, workspace=None):
+    if workspace is None:
+      workspace = self.get_default_workspace()
+    ds_url = "%s/workspaces/%s/datastores/%s/file.shp" % (self.service_url, workspace.name, name)
+    # PUT /workspaces/<ws>/datastores/<ds>/file.shp
+    headers = {
+      "Content-type": "application/zip",
+      "Accept": "application/xml"
+    }
+    zip = prepare_upload_bundle(name, data)
+    message = open(zip).read()
+    try:
+      response = self.http.request(ds_url, "PUT", message, headers)
+    finally:
+      unlink(zip)
+
+  def create_coveragestore(self, name, data, workspace=None):
+    if workspace is None:
+      workspace = self.get_default_workspace()
+    headers = {
+      "Content-type": "application/zip",
+      "Accept": "application/xml"
+    }
+
+    zip = None
+    ext = "geotiff"
+
+    if isinstance(data, dict):
+      zip = prepare_upload_bundle(name, data)
+      message = open(zip).read()
+      if "tfw" in data:
+        ext = "worldimage"
+    elif isinstance(data, basestring):
+      message = open(data).read()
+    else:
+      message = data.read()
+
+    cs_url = "%s/workspaces/%s/coveragestores/%s/file.%s" % (self.service_url, workspace.name, name, ext)
+    try:
+      response = self.http.request(cs_url, "PUT", message, headers)
+    finally:
+      if zip is not None:
+        unlink(zip)
 
   def get_resource(self, name, store=None, workspace=None):
     if store is not None:
@@ -145,12 +186,18 @@ class Catalog:
       resources.extend(self.get_resources(workspace=ws))
     return resources
 
-  def get_layer(self, id=None, name=None):
-    raise NotImplementedError()
+  def get_layer(self, name=None):
+    layers = [l for l in self.get_layers() if l.name == name]
+    if len(layers) == 0:
+      return None
+    elif len(layers) > 1:
+      raise AmbiguousRequestError("%s does not uniquely identify a layer" % name)
+    else:
+      return layers[0]
 
   def get_layers(self, resource=None, style=None):
     description = get_xml("%s/layers.xml" % self.service_url)
-    return [Layer(l) for l in description["layers"]["layer"]]
+    return [Layer(l) for l in description.findall("layer")]
 
   def get_maps(self):
     raise NotImplementedError()

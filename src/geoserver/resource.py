@@ -109,20 +109,19 @@ class FeatureType(ResourceInfo):
     builder.end("abstract")
 
   def delete(self):
+
     """
-    Removes a featureType from the GeoServer Catalog. Must remove 
-    Removing a featureType from GeoServer takes three steps: 
-        1. Remove the featureType's layer
-        2. If the featureType is in a layer group remove it. 
-        3. Remove the 
+    Removes a featureType from the GeoServer Catalog.  This is a dumb
+    method, ie it does not remove any dependent resources in GeoServer. 
+    To remove all dependent resource call delete_all
+    """
+    self.catalog.delete(self)
+
+  def delete_all(self): 
+    """
+    Remove a featureType and all of the dependent resources in GeoServer. 
     """
     pass 
-    # deletes layer 
-    #layer_url = "%s/layers/%s" % (self.catalog.service_url,self.name)
-    #delete(layer_url)
-    # deletes featureType
-    #feature_url = self.href.replace(".xml","")
-    #delete(feature_url)
 
   def get_url(self, service_url):
     return self.href

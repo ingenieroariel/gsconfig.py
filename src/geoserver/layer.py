@@ -157,6 +157,10 @@ class Layer(ResourceInfo):
   def get_url(self, service_url):
     return self.href
 
+  def delete(self):
+    
+    import pdb; pdb.set_trace()
+    return url
 
   def __repr__(self):
     return "Layer[%s]" % self.name

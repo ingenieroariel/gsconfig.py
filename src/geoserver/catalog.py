@@ -37,7 +37,20 @@ class Catalog:
   def remove(self, object):
     raise NotImplementedError()
 
-  def save(self, object, username="admin", password="geoserver"):
+  def delete(self,object):
+    """
+    send a delete request 
+    XXX [more here]   
+    """
+    url = object.get_url(self.service_url)
+    headers = {
+      "Content-type": "application/xml",
+      "Accept": "application/xml"
+    } 
+    response = self.http.request(url, "DELETE",headers=headers)
+    return response
+
+  def save(self, object):
     """
     saves an object to the REST service
 

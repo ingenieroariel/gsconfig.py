@@ -142,5 +142,23 @@ class ModifyingTests(unittest.TestCase):
     self.assertEqual(old_attribution, lyr.attribution)
 
 
+  def testLayerDelete(self):
+    lyr = self.cat.get_layer("states") 
+    self.cat.delete(lyr)
+    self.assert_(self.cat.get_layer("states") is None)
+
+
+  def testWorkspaceDelete(self): 
+    pass 
+
+  def testFeatureTypeDelete(self):
+    pass
+
+  def testCoverageDelete(self):
+    pass
+
+  def testDataStoreDelete(self):
+    pass
+
 if __name__ == "__main__":
   unittest.main()

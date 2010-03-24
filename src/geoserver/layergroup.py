@@ -1,5 +1,6 @@
 from geoserver.support import ResourceInfo, atom_link
 from geoserver.layer import Layer
+
 class LayerGroup(ResourceInfo):
     """
     Represents a layer group in geoserver 

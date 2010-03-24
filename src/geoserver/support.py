@@ -1,9 +1,6 @@
 from xml.etree.ElementTree import TreeBuilder, XML, tostring
 from tempfile import mkstemp
-from urllib2 import urlopen, HTTPPasswordMgr, HTTPBasicAuthHandler, install_opener, build_opener
 import httplib2
-
-
 from zipfile import ZipFile
 
 
@@ -37,7 +34,7 @@ class ResourceInfo(object):
   """A string identifier for the *type* of resource, such as layer or style"""
 
   def update(self):
-    self.metadata = get_xml(self.href)
+    self.metadata = self.catalog.get_xml(self.href)
     self.name = self.metadata.find('name').text
 
   def delete(self):
@@ -78,46 +75,6 @@ def prepare_upload_bundle(name, data):
   zip.close()
   return f
 
-def get(url,username=None,password=None): 
-
-  password_manager = HTTPPasswordMgr()
-  password_manager.add_password(
-    realm='GeoServer Realm',
-    uri='http://localhost:8080/geoserver/',
-    user='admin',
-    passwd='geoserver'
-  )
-
-  handler = HTTPBasicAuthHandler(password_manager)
-  install_opener(build_opener(handler))
-  
-  response = urlopen(url).read()
-  try:
-      return response
-  except:
-      print "%s => \n%s" % (url, response)
-
-
-def get_xml(url):
-  """
-  XXX remove hard coded username and password 
-  """
-  password_manager = HTTPPasswordMgr()
-  password_manager.add_password(
-    realm='GeoServer Realm',
-    uri='http://localhost:8080/geoserver/',
-    user='admin',
-    passwd='geoserver'
-  )
-
-  handler = HTTPBasicAuthHandler(password_manager)
-  install_opener(build_opener(handler))
-  
-  response = urlopen(url).read()
-  try:
-    return XML(response)
-  except:
-    print "%s => \n%s" % (url, response)
 
 def delete(url):
   """

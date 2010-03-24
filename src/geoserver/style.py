@@ -1,8 +1,9 @@
 from geoserver.support import ResourceInfo, atom_link
 
 class Style(ResourceInfo):
-  def __init__(self, node):
-    self.name = node.find("name").text
+  def __init__(self,catalog, node):
+    self.catalog = catalog
+    self.name = node.find("name").text    
     self.href = atom_link(node)
     self.update()
 

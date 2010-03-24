@@ -1,14 +1,14 @@
 from geoserver.layer import Layer
 from geoserver.store import DataStore, CoverageStore
 from geoserver.style import Style
-from geoserver.support import get_xml, prepare_upload_bundle
+from geoserver.support import prepare_upload_bundle
 from geoserver.layergroup import LayerGroup
-from geoserver.support import get_xml
 from geoserver.workspace import Workspace
-
+from urllib2 import urlopen, HTTPPasswordMgr, HTTPBasicAuthHandler, install_opener, build_opener
 from os import unlink
 from urllib2 import HTTPError
-import httplib2
+import httplib2 
+from xml.etree.ElementTree import XML
 
 class AmbiguousRequestError(Exception):
   pass 
@@ -31,7 +31,9 @@ class Catalog:
   def __init__(self, url, username="admin", password="geoserver"):
     self.service_url = url
     self.http = httplib2.Http()
-    self.http.add_credentials(username, password)
+    self.username = username
+    self.password = password
+    self.http.add_credentials(self.username, self.password)
 
   def add(self, object):
     raise NotImplementedError()
@@ -51,6 +53,28 @@ class Catalog:
     } 
     response = self.http.request(url, "DELETE",headers=headers)
     return response
+
+  
+  def get_xml(self,url):
+    """
+    XXX remove hard coded username and password 
+    """
+    password_manager = HTTPPasswordMgr()
+    password_manager.add_password(
+      realm='GeoServer Realm',
+      uri='http://localhost:8080/geoserver/',
+      user=self.username,
+      passwd=self.password
+    )
+
+    handler = HTTPBasicAuthHandler(password_manager)
+    install_opener(build_opener(handler))
+  
+    response = urlopen(url).read()
+    try:
+      return XML(response)
+    except:
+      print "%s => \n%s" % (url, response,)
 
   def save(self, object):
     """
@@ -84,11 +108,11 @@ class Catalog:
       cs_url = "%s/workspaces/%s/coveragestores/%s.xml" % (self.service_url, workspace.name, name)
 
       try:
-        store = get_xml(ds_url)
+        store = self.get_xml(ds_url)
         return DataStore(self,store, workspace)
       except HTTPError:
         try:
-          store = get_xml(cs_url)
+          store = self.get_xml(cs_url)
           return CoverageStore(self,store, workspace)
         except HTTPError:
           return None
@@ -101,14 +125,14 @@ class Catalog:
       ds_url = "%s/workspaces/%s/datastores.xml" % (self.service_url, workspace.name)
       cs_url = "%s/workspaces/%s/coveragestores.xml" % (self.service_url, workspace.name)
       try: 
-        response = get_xml(ds_url)
+        response = self.get_xml(ds_url)
         ds_list = response.findall("dataStore")
         stores.extend([DataStore(self,store, workspace) for store in ds_list])
       except HTTPError, e:
         print e
         pass
       try: 
-        response = get_xml(cs_url)
+        response = self.get_xml(cs_url)
         cs_list = response.findall("coverageStore")
         stores.extend([CoverageStore(self,store, workspace) for store in cs_list])
       except HTTPError, e:
@@ -211,7 +235,7 @@ class Catalog:
       return layers[0]
 
   def get_layers(self, resource=None, style=None):
-    description = get_xml("%s/layers.xml" % self.service_url)
+    description = self.get_xml("%s/layers.xml" % self.service_url)
     return [Layer(self,l) for l in description.findall("layer")]
 
   def get_maps(self):
@@ -221,11 +245,11 @@ class Catalog:
     raise NotImplementedError()
 
   def get_layergroup(self, id=None, name=None):
-    group = get_xml("%s/layergroups/%s.xml" % (self.service_url, name))    
+    group = self.get_xml("%s/layergroups/%s.xml" % (self.service_url, name))    
     return LayerGroup(self, group.find("name").text)
 
   def get_layergroups(self):
-    groups = get_xml("%s/layergroups.xml" % self.service_url)
+    groups = self.get_xml("%s/layergroups.xml" % self.service_url)
     return [LayerGroup(self,group) for group in groups.findall("layerGroup")]
 
   def get_style(self, name):
@@ -238,8 +262,8 @@ class Catalog:
       return candidates[0]
 
   def get_styles(self):
-    description = get_xml("%s/styles.xml" % self.service_url)
-    return [Style(s) for s in description.findall("style")]
+    description = self.get_xml("%s/styles.xml" % self.service_url)
+    return [Style(self,s) for s in description.findall("style")]
   
   def get_namespace(self, id=None, prefix=None, uri=None):
     raise NotImplementedError()
@@ -251,7 +275,7 @@ class Catalog:
     raise NotImplementedError()
 
   def get_workspaces(self):
-    description = get_xml("%s/workspaces.xml" % self.service_url)
+    description = self.get_xml("%s/workspaces.xml" % self.service_url)
     def extract_ws(node):
         name = node.find("name").text
         href = node.find("{http://www.w3.org/2005/Atom}link").get("href")
@@ -260,7 +284,7 @@ class Catalog:
 
   def get_workspace(self, name):
     href = "%s/workspaces/%s.xml" % (self.service_url, name)
-    ws  = get_xml(href)
+    ws  = self.get_xml(href)
     name = ws.find("name").text
     # href = ws.find("{http://www.w3.org/2005/Atom}link").get("href").text
     return Workspace(self,name, href)

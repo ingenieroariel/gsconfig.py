@@ -1,5 +1,5 @@
 from geoserver.resource import FeatureType, Coverage
-from geoserver.support import ResourceInfo, get_xml, atom_link
+from geoserver.support import ResourceInfo, atom_link
 from geoserver.workspace import Workspace
 
 class DataStore:
@@ -29,7 +29,7 @@ class DataStore:
      self.feature_type_url = atom_link(node.find("featureTypes"))
 
   def update(self):
-    node = get_xml(self.href)
+    node = self.catalog.get_xml(self.href)
     self.enabled = node.find("enabled") == "true"
     self.connection_parameters = [
         (entry.get("key"), entry.text) for entry in node.findall("connectionParameters/entry")
@@ -40,7 +40,7 @@ class DataStore:
     raise NotImplementedError()
 
   def get_resources(self):
-    node = get_xml(self.feature_type_url)
+    node = self.catalog.get_xml(self.feature_type_url)
     types = node.findall("featureType")
     return [FeatureType(self.catalog,ft, self) for ft in types]
 
@@ -80,7 +80,7 @@ class CoverageStore(ResourceInfo):
   
 
   def get_resources(self):
-    response = get_xml(self.coverage_url)
+    response = self.catalog.get_xml(self.coverage_url)
     types = response.findall("coverage")
     return [Coverage(self.catalog,cov, self) for cov in types]
 

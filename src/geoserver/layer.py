@@ -1,6 +1,6 @@
 from geoserver.support import ResourceInfo, atom_link
 from geoserver.style import Style
-from geoserver.resource import FeatureType, Coverage, delete
+from geoserver.resource import FeatureType, Coverage 
 
 class Layer(ResourceInfo): 
   resource_type = "layer"
@@ -102,7 +102,7 @@ class Layer(ResourceInfo):
       self.enabled = False
 
     if default_style is not None:
-      self.default_style = Style(default_style)
+      self.default_style = Style(self.catalog,default_style)
     else:
       self.default_style = None
 

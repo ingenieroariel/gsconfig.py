@@ -177,11 +177,10 @@ class ModifyingTests(unittest.TestCase):
 
 
   def testLayerDelete(self):
-    lyr = self.cat.get_layer("states") 
+    lyr = self.cat.get_layer("states_test") 
     self.cat.delete(lyr)
-    self.assert_(self.cat.get_layer("states") is None)
-
-
+    self.assert_(self.cat.get_layer("states_test") is None)
+    
   def testWorkspaceDelete(self): 
     pass 
 

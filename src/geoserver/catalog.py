@@ -2,6 +2,8 @@ from geoserver.layer import Layer
 from geoserver.store import DataStore, CoverageStore
 from geoserver.style import Style
 from geoserver.support import get_xml, prepare_upload_bundle
+from geoserver.layergroup import LayerGroup
+from geoserver.support import get_xml
 from geoserver.workspace import Workspace
 
 from os import unlink
@@ -37,7 +39,20 @@ class Catalog:
   def remove(self, object):
     raise NotImplementedError()
 
-  def save(self, object, username="admin", password="geoserver"):
+  def delete(self,object):
+    """
+    send a delete request 
+    XXX [more here]   
+    """
+    url = object.get_url(self.service_url)
+    headers = {
+      "Content-type": "application/xml",
+      "Accept": "application/xml"
+    } 
+    response = self.http.request(url, "DELETE",headers=headers)
+    return response
+
+  def save(self, object):
     """
     saves an object to the REST service
 
@@ -197,7 +212,7 @@ class Catalog:
 
   def get_layers(self, resource=None, style=None):
     description = get_xml("%s/layers.xml" % self.service_url)
-    return [Layer(l) for l in description.findall("layer")]
+    return [Layer(self,l) for l in description.findall("layer")]
 
   def get_maps(self):
     raise NotImplementedError()
@@ -206,10 +221,12 @@ class Catalog:
     raise NotImplementedError()
 
   def get_layergroup(self, id=None, name=None):
-    raise NotImplementedError()
+    group = get_xml("%s/layergroups/%s.xml" % (self.service_url, name))    
+    return LayerGroup(self, group.find("name").text)
 
   def get_layergroups(self):
-    raise NotImplementedError()
+    groups = get_xml("%s/layergroups.xml" % self.service_url)
+    return [LayerGroup(self,group) for group in groups.findall("layerGroup")]
 
   def get_style(self, name):
     candidates = filter(lambda x: x.name == name, self.get_styles())

@@ -9,7 +9,7 @@ class CatalogTests(unittest.TestCase):
 
   def testWorkspaces(self):
     self.assertEqual(7, len(self.cat.get_workspaces()))
-    self.assertEqual("nurc", self.cat.get_default_workspace().name)
+    self.assertEqual("cite", self.cat.get_default_workspace().name)
     self.assertEqual("topp", self.cat.get_workspace("topp").name)
 
 
@@ -61,13 +61,13 @@ class CatalogTests(unittest.TestCase):
 
 
   def testLayers(self):
+
     expected = set(["Arc_Sample", "Pk50095", "Img_Sample", "mosaic", "sfdem",
       "bugsites", "restricted", "streams", "archsites", "roads",
       "tasmania_roads", "tasmania_water_bodies", "tasmania_state_boundaries",
       "tasmania_cities", "states", "poly_landmarks", "tiger_roads", "poi",
       "giant_polygon"
     ])
-
     actual = set(l.name for l in self.cat.get_layers())
     missing = expected - actual
     extras = actual - expected
@@ -175,6 +175,24 @@ class ModifyingTests(unittest.TestCase):
     self.cat.save(lyr)
     self.assertEqual(old_attribution, lyr.attribution)
 
+
+  def testLayerDelete(self):
+    lyr = self.cat.get_layer("states") 
+    self.cat.delete(lyr)
+    self.assert_(self.cat.get_layer("states") is None)
+
+
+  def testWorkspaceDelete(self): 
+    pass 
+
+  def testFeatureTypeDelete(self):
+    pass
+
+  def testCoverageDelete(self):
+    pass
+
+  def testDataStoreDelete(self):
+    pass
 
 if __name__ == "__main__":
   unittest.main()

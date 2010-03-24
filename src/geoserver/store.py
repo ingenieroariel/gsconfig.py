@@ -3,9 +3,12 @@ from geoserver.support import ResourceInfo, get_xml, atom_link
 from geoserver.workspace import Workspace
 
 class DataStore:
+  """
+  XXX represents a Datastore in GeoServer
+  """
   resource_type = 'dataStore'
 
-  def __init__(self,catalog,node,workspace=None):
+  def __init__(self,catalog,node, workspace=None):
     self.name = node.find("name").text
     self.catalog = catalog
     if workspace is not None:
@@ -14,9 +17,6 @@ class DataStore:
         ws = node.find("workspace/name").text
         href = node.find("workspace/{http://www.w3.org/2005/Atom}link").get("href")
         self.workspace = Workspace(self.catalog,ws, href)
-      ws = node.find("workspace/name").text
-      href = node.find("workspace/{http://www.w3.org/2005/Atom}link").get("href")
-      self.workspace = Workspace(ws, href)
     link = node.find("{http://www.w3.org/2005/Atom}link")
     if link is not None and "href" in link.attrib:
       self.href = link.attrib["href"]
@@ -48,6 +48,9 @@ class DataStore:
     return "DataStore[%s:%s]" % (self.workspace.name, self.name)
 
 class CoverageStore(ResourceInfo):
+  """
+  XXX 
+  """
   resource_type = 'coverageStore'
 
   def __init__(self,catalog,node, workspace=None):
@@ -75,8 +78,6 @@ class CoverageStore(ResourceInfo):
     self.data_url = self.metadata.find("url").text
     self.coverage_url = atom_link(self.metadata.find("coverages"))
   
-  def delete(self):
-    print self
 
   def get_resources(self):
     response = get_xml(self.coverage_url)

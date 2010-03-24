@@ -117,17 +117,6 @@ class FeatureType(ResourceInfo):
     builder.data(self.abstract)
     builder.end("abstract")
 
-  def delete(self):
-    """
-    Removes a feature from the GeoServer Catalog. Must remove 
-    """
-    # deletes layer 
-    layer_url = "http://localhost:8080/geoserver/rest/layers/"
-    delete(layer_url)
-    # deletes featureType
-    feature_url = self.href.replace(".xml","")
-    delete(feature_url)
-
     builder.start("keywords", dict())
     for kw in self.keywords:
         builder.start("string", dict())
@@ -185,6 +174,30 @@ class FeatureType(ResourceInfo):
     #     builder.end("attribute")
     # builder.end("attributes")
     
+
+    """
+    Removes a featureType from the GeoServer Catalog.  This is a dumb
+    method, ie it does not remove any dependent resources in GeoServer. 
+    To remove all dependent resource call delete_all
+    """
+    self.catalog.delete(self)
+
+
+  def delete(self):
+    """
+    Removes a feature from the GeoServer Catalog. Must remove 
+    """
+    pass 
+
+
+
+  def delete_all(self): 
+    """
+    Remove a featureType and all of the dependent resources in GeoServer. 
+    """
+    pass 
+
+
   def get_url(self, service_url):
     return self.href
 

@@ -5,9 +5,10 @@ from geoserver.resource import FeatureType, Coverage, delete
 class Layer(ResourceInfo): 
   resource_type = "layer"
 
-  def __init__(self, node):
+  def __init__(self,catalog,node):
     self.href = atom_link(node)
     self.name = None
+    self.catalog = catalog
     """The name of this layer"""
 
     self.attribution = None
@@ -108,9 +109,9 @@ class Layer(ResourceInfo):
     resource = self.metadata.find("resource")
     if resource and "class" in resource.attrib:
       if resource.attrib["class"] == "featureType":
-        self.resource = FeatureType(resource)
+        self.resource = FeatureType(self.catalog,resource)
       elif resource.attrib["class"] == "coverage":
-        self.resource = Coverage(resource)
+        self.resource = Coverage(self.catalog,resource)
 
   def encode(self, builder):
       if self.name is not None:
@@ -156,9 +157,6 @@ class Layer(ResourceInfo):
   def get_url(self, service_url):
     return self.href
 
-  def delete(self): 
-    url = self.href.replace(".xml","")
-    delete(url)
 
   def __repr__(self):
     return "Layer[%s]" % self.name

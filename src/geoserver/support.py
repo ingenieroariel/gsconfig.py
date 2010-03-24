@@ -7,6 +7,7 @@ import httplib2
 from zipfile import ZipFile
 
 
+
 FORCE_DECLARED = "FORCE_DECLARED"
 """
 The projection handling policy for layers that should use coordinates
@@ -38,6 +39,9 @@ class ResourceInfo(object):
   def update(self):
     self.metadata = get_xml(self.href)
     self.name = self.metadata.find('name').text
+
+  def delete(self):
+    raise NotImplementedError()
 
   def serialize(self):
     builder = TreeBuilder()
@@ -73,6 +77,26 @@ def prepare_upload_bundle(name, data):
       zip.writestr(fname, stream.read())
   zip.close()
   return f
+
+def get(url,username=None,password=None): 
+
+  password_manager = HTTPPasswordMgr()
+  password_manager.add_password(
+    realm='GeoServer Realm',
+    uri='http://localhost:8080/geoserver/',
+    user='admin',
+    passwd='geoserver'
+  )
+
+  handler = HTTPBasicAuthHandler(password_manager)
+  install_opener(build_opener(handler))
+  
+  response = urlopen(url).read()
+  try:
+      return response
+  except:
+      print "%s => \n%s" % (url, response)
+
 
 def get_xml(url):
   """

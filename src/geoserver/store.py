@@ -7,11 +7,11 @@ class DataStore:
   def __init__(self, node, workspace=None):
     self.name = node.find("name").text
     if workspace is not None:
-        self.workspace = workspace
+      self.workspace = workspace
     else:
-        ws = node.find("workspace/name").text
-        href = node.find("workspace/{http://www.w3.org/2005/Atom}link").get("href")
-        self.workspace = Workspace(ws, href)
+      ws = node.find("workspace/name").text
+      href = node.find("workspace/{http://www.w3.org/2005/Atom}link").get("href")
+      self.workspace = Workspace(ws, href)
 
     link = node.find("{http://www.w3.org/2005/Atom}link")
     if link is not None and "href" in link.attrib:

@@ -1,5 +1,6 @@
 import unittest
 from geoserver.catalog import Catalog
+from geoserver.util import shapefile_and_friends
 
 class CatalogTests(unittest.TestCase):
   def setUp(self):
@@ -123,6 +124,39 @@ class ModifyingTests(unittest.TestCase):
     rs = self.cat.get_resource("Arc_Sample")
     self.assertEqual(old_abstract, rs.abstract)
 
+  def testFeatureTypeCreate(self):
+    shapefile_plus_boxcars = shapefile_and_friends("test/data/states")
+    expected = {
+      'shp': 'test/data/states.shp',
+      'shx': 'test/data/states.shx',
+      'dbf': 'test/data/states.dbf',
+      'prj': 'test/data/states.prj'
+    }
+
+    self.assertEqual(len(expected), len(shapefile_plus_boxcars))
+    for k, v in expected.iteritems():
+      self.assertEqual(v, shapefile_plus_boxcars[k])
+ 
+    sf = self.cat.get_workspace("sf")
+    ft = self.cat.create_featurestore("states_test", shapefile_plus_boxcars, sf)
+
+    # Will throw exception if the resource isn't found; no explicit assertion
+    # needed
+    self.cat.get_resource("states_test", workspace=sf)
+
+  def testCoverageCreate(self):
+    tiffdata = {
+      'tiff': 'test/data/Pk50095.tif',
+      'tfw':  'test/data/Pk50095.tfw',
+      'prj':  'test/data/Pk50095.prj'
+    }
+
+    sf = self.cat.get_workspace("sf")
+    ft = self.cat.create_coveragestore("Pk50095", tiffdata, sf)
+
+    # Will throw exception if the resource isn't found; no explicit assertion
+    # needed
+    self.cat.get_resource("Pk50095", workspace=sf) 
 
   def testLayerSave(self):
     # test saving round trip

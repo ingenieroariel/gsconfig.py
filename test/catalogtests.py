@@ -121,11 +121,11 @@ class ModifyingTests(unittest.TestCase):
       self.assertEqual(v, shapefile_plus_boxcars[k])
  
     sf = self.cat.get_workspace("sf")
-    ft = self.cat.create_featurestore("states", shapefile_plus_boxcars, sf)
+    ft = self.cat.create_featurestore("states_test", shapefile_plus_boxcars, sf)
 
     # Will throw exception if the resource isn't found; no explicit assertion
     # needed
-    self.cat.get_resource("states", workspace=sf) 
+    self.cat.get_resource("states_test", workspace=sf)
 
   def testCoverageCreate(self):
     tiffdata = {

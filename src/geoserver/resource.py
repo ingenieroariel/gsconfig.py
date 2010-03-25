@@ -4,7 +4,7 @@ from geoserver.support import ResourceInfo, atom_link, atom_link_xml, bbox, bbox
 class FeatureType(ResourceInfo):
   resource_type = "featureType"
 
-  def __init__(self,catalog,node, store=None):
+  def __init__(self, catalog, node, store=None):
     self.catalog = catalog
     self.href = atom_link(node)
 

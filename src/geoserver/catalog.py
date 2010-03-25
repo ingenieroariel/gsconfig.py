@@ -4,9 +4,7 @@ from geoserver.style import Style
 from geoserver.support import prepare_upload_bundle
 from geoserver.layergroup import LayerGroup
 from geoserver.workspace import Workspace
-from urllib2 import urlopen, HTTPPasswordMgr, HTTPBasicAuthHandler, install_opener, build_opener
 from os import unlink
-from urllib2 import HTTPError
 import httplib2 
 from xml.etree.ElementTree import XML
 
@@ -56,25 +54,11 @@ class Catalog:
 
   
   def get_xml(self,url):
-    """
-    XXX remove hard coded username and password 
-    """
-    password_manager = HTTPPasswordMgr()
-    password_manager.add_password(
-      realm='GeoServer Realm',
-      uri=self.service_url,
-      user=self.username,
-      passwd=self.password
-    )
-
-    handler = HTTPBasicAuthHandler(password_manager)
-    install_opener(build_opener(handler))
-  
-    response = urlopen(url).read()
-    try:
-      return XML(response)
-    except:
-      print "%s => \n%s" % (url, response,)
+    response, content = self.http.request(url)
+    if response.status == 200:
+        return XML(content)
+    else:
+        return None
 
   def save(self, object):
     """
@@ -107,36 +91,29 @@ class Catalog:
       ds_url = "%s/workspaces/%s/datastores/%s.xml" % (self.service_url, workspace.name, name)
       cs_url = "%s/workspaces/%s/coveragestores/%s.xml" % (self.service_url, workspace.name, name)
 
-      try:
-        store = self.get_xml(ds_url)
+    store = self.get_xml(ds_url)
+    if store is not None:
         return DataStore(self,store, workspace)
-      except HTTPError:
-        try:
-          store = self.get_xml(cs_url)
-          return CoverageStore(self,store, workspace)
-        except HTTPError:
-          return None
-
-    raise NotImplementedError()
+    else:
+        store = self.get_xml(cs_url)
+        if store is not None:
+            return CoverageStore(self,store, workspace)
+        else:
+            return None
 
   def get_stores(self, workspace=None):
     if workspace is not None:
       stores = []
       ds_url = "%s/workspaces/%s/datastores.xml" % (self.service_url, workspace.name)
       cs_url = "%s/workspaces/%s/coveragestores.xml" % (self.service_url, workspace.name)
-      try: 
-        response = self.get_xml(ds_url)
-        ds_list = response.findall("dataStore")
-        stores.extend([DataStore(self,store, workspace) for store in ds_list])
-      except HTTPError, e:
-        print e
-        pass
-      try: 
-        response = self.get_xml(cs_url)
-        cs_list = response.findall("coverageStore")
-        stores.extend([CoverageStore(self,store, workspace) for store in cs_list])
-      except HTTPError, e:
-        pass
+      response = self.get_xml(ds_url)
+      if response is not None:
+          ds_list = response.findall("dataStore")
+          stores.extend([DataStore(self,store, workspace) for store in ds_list])
+      response = self.get_xml(cs_url)
+      if response is not None:
+          cs_list = response.findall("coverageStore")
+          stores.extend([CoverageStore(self,store, workspace) for store in cs_list])
       return stores
     else:
       stores = []

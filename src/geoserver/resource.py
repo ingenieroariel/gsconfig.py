@@ -247,9 +247,14 @@ def coverage_dimension_xml(builder, dimension):
 class Coverage(ResourceInfo):
   resource_type = "coverage"
 
-  def __init__(self,catalog,node, store=None):
+  def __init__(self, catalog, node, store=None):
     self.catalog = catalog
-    self.href = atom_link(node)
+
+    if 'href' in node.attrib:
+        self.href = node.attrib['href']
+    else:
+        self.href = atom_link(node)
+
     self.store = store
     """The store containing this coverage"""
 

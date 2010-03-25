@@ -77,50 +77,38 @@ class Catalog:
     return response
 
   def get_store(self, name, workspace=None):
-    if workspace is None:
-      workspaces = self.get_workspaces()
-      stores = [self.get_store(workspace=ws, name=name) for ws in workspaces]
-      stores = filter(lambda x: x is not None, stores)
-      if len(stores) == 0:
-        return None
-      elif len(stores) > 1:
-        raise AmbiguousRequestError("%s does not uniquely identify a store" % name)
+      if workspace is None:
+          workspaces = self.get_workspaces()
+          stores = [self.get_store(workspace=ws, name=name) for ws in workspaces]
+          stores = filter(lambda x: x is not None, stores)
+          if len(stores) == 0:
+              return None
+          elif len(stores) > 1:
+              raise AmbiguousRequestError("%s does not uniquely identify a store" % name)
+          else:
+              return stores[0]
       else:
-        return stores[0]
-    else:
-      ds_url = "%s/workspaces/%s/datastores/%s.xml" % (self.service_url, workspace.name, name)
-      cs_url = "%s/workspaces/%s/coveragestores/%s.xml" % (self.service_url, workspace.name, name)
-
-    store = self.get_xml(ds_url)
-    if store is not None:
-        return DataStore(self,store, workspace)
-    else:
-        store = self.get_xml(cs_url)
-        if store is not None:
-            return CoverageStore(self,store, workspace)
-        else:
-            return None
+          stores = [s for s in self.get_stores() if s.name == name]
+          if len(stores) == 0:
+              return None
+          elif len(stores) > 1:
+              raise AmbiguousRequestError("%s does not uniquely identify a layer" % name)
+          else:
+              return stores[0]
 
   def get_stores(self, workspace=None):
-    if workspace is not None:
-      stores = []
-      ds_url = "%s/workspaces/%s/datastores.xml" % (self.service_url, workspace.name)
-      cs_url = "%s/workspaces/%s/coveragestores.xml" % (self.service_url, workspace.name)
-      response = self.get_xml(ds_url)
-      if response is not None:
-          ds_list = response.findall("dataStore")
-          stores.extend([DataStore(self,store, workspace) for store in ds_list])
-      response = self.get_xml(cs_url)
-      if response is not None:
-          cs_list = response.findall("coverageStore")
-          stores.extend([CoverageStore(self,store, workspace) for store in cs_list])
-      return stores
-    else:
-      stores = []
-      for ws in self.get_workspaces():
-        a = self.get_stores(ws)
-        stores.extend(a)
-      return stores
+      if workspace is not None:
+          ds_list = self.get_xml(workspace.datastore_url)
+          cs_list = self.get_xml(workspace.coveragestore_url)
+          datastores = [DataStore(self, n) for n in ds_list.findall("dataStore")]
+          coveragestores = [CoverageStore(self, n) for n in cs_list.findall("coverageStore")]
+          return datastores + coveragestores
+      else:
+          stores = []
+          for ws in self.get_workspaces():
+              a = self.get_stores(ws)
+              stores.extend(a)
+          return stores
 
   def create_featurestore(self, name, data, workspace=None):
     if workspace is None:
@@ -168,7 +156,7 @@ class Catalog:
 
   def get_resource(self, name, store=None, workspace=None):
     if store is not None:
-      candidates = filter(lambda x: x.name == name, store.get_resources())
+      candidates = filter(lambda x: x.name == name, self.get_resources(store))
       if len(candidates) == 0:
         return None
       elif len(candidates) > 1:
@@ -195,7 +183,7 @@ class Catalog:
     if workspace is not None:
       resources = []
       for store in self.get_stores(workspace):
-        resources.extend(self.get_resources(store))
+          resources.extend(self.get_resources(store))
       return resources
     resources = []
     for ws in self.get_workspaces():

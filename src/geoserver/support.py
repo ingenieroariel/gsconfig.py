@@ -1,4 +1,4 @@
-from xml.etree.ElementTree import TreeBuilder, XML, tostring
+from xml.etree.ElementTree import TreeBuilder, tostring
 from tempfile import mkstemp
 import httplib2
 from zipfile import ZipFile
@@ -35,7 +35,8 @@ class ResourceInfo(object):
 
   def update(self):
     self.metadata = self.catalog.get_xml(self.href)
-    self.name = self.metadata.find('name').text
+    name = self.metadata.find('name')
+    self.name = name.text if name is not None else None
 
   def delete(self):
     raise NotImplementedError()
@@ -75,21 +76,11 @@ def prepare_upload_bundle(name, data):
   zip.close()
   return f
 
-
-def delete(url):
-  """
-  delete method
-  XXX remove httplib2 
-  """
-  h = httplib2.Http(".cache")
-  h.add_credentials('admin', 'geoserver')
-  try:
-    h.request(url,"DELETE")
-  except HTTPError:
-    print e.geturl()
-
 def atom_link(node):
-    return node.find("{http://www.w3.org/2005/Atom}link").get("href")
+    l = node.find("{http://www.w3.org/2005/Atom}link")
+    if l is None:
+        print tostring(node)
+    return l.get('href')
 
 def atom_link_xml(builder, href):
     builder.start("atom:link", {
@@ -101,13 +92,16 @@ def atom_link_xml(builder, href):
     builder.end("atom:link")
 
 def bbox(node):
-    minx = node.find("minx")
-    maxx = node.find("maxx")
-    miny = node.find("miny")
-    maxy = node.find("maxy")
-    crs  = node.find("crs")
-    if (None not in [minx, maxx, miny, maxy, crs]):
-        return (minx.text, maxx.text, miny.text, maxy.text, crs.text)
+    if node is not None: 
+        minx = node.find("minx")
+        maxx = node.find("maxx")
+        miny = node.find("miny")
+        maxy = node.find("maxy")
+        crs  = node.find("crs")
+        if (None not in [minx, maxx, miny, maxy, crs]):
+            return (minx.text, maxx.text, miny.text, maxy.text, crs.text)
+        else: 
+            return None
     else:
         return None
 

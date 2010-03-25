@@ -62,7 +62,7 @@ class Catalog:
     password_manager = HTTPPasswordMgr()
     password_manager.add_password(
       realm='GeoServer Realm',
-      uri='http://localhost:8080/geoserver/',
+      uri=self.service_url,
       user=self.username,
       passwd=self.password
     )

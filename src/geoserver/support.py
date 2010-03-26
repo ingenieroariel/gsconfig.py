@@ -77,10 +77,11 @@ def prepare_upload_bundle(name, data):
   return f
 
 def atom_link(node):
-    l = node.find("{http://www.w3.org/2005/Atom}link")
-    if l is None:
-        print tostring(node)
-    return l.get('href')
+    if 'href' in node.attrib:
+        return node.attrib['href']
+    else:
+        l = node.find("{http://www.w3.org/2005/Atom}link")
+        return l.get('href')
 
 def atom_link_xml(builder, href):
     builder.start("atom:link", {

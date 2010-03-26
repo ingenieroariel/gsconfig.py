@@ -1,4 +1,5 @@
 from geoserver.support import ResourceInfo, atom_link, atom_link_xml, bbox, bbox_xml, FORCE_NATIVE, FORCE_DECLARED, REPROJECT
+from xml.etree.ElementTree import tostring
 
 
 class FeatureType(ResourceInfo):
@@ -250,10 +251,7 @@ class Coverage(ResourceInfo):
   def __init__(self, catalog, node, store=None):
     self.catalog = catalog
 
-    if 'href' in node.attrib:
-        self.href = node.attrib['href']
-    else:
-        self.href = atom_link(node)
+    self.href = atom_link(node)
 
     self.store = store
     """The store containing this coverage"""
@@ -348,6 +346,10 @@ class Coverage(ResourceInfo):
     default_interpolation_method = doc.find("defaultInterpolationMethod")
     request_srs = doc.find("requestSRS/string")
     response_srs = doc.find("responseSRS/string")
+
+    if title is None:
+        print self.href
+        print tostring(doc)
 
     self.title = title.text if title is not None else None
     self.abstract = abstract.text if abstract is not None else None

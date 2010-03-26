@@ -79,12 +79,16 @@ class Catalog:
   def get_store(self, name, workspace=None):
       if workspace is None:
           workspaces = self.get_workspaces()
-          stores = [self.get_store(workspace=ws, name=name) for ws in workspaces]
-          stores = filter(lambda x: x is not None, stores)
+          stores = [
+              s for s in 
+                  [self.get_store(workspace=ws, name=name) for ws in workspaces]
+              if s is not None
+          ]
+
           if len(stores) == 0:
               return None
           elif len(stores) > 1:
-              raise AmbiguousRequestError("%s does not uniquely identify a store" % name)
+              raise AmbiguousRequestError("%s does not uniquely identify a store from %s" % (name, stores))
           else:
               return stores[0]
       else:
@@ -241,18 +245,14 @@ class Catalog:
 
   def get_workspaces(self):
     description = self.get_xml("%s/workspaces.xml" % self.service_url)
-    def extract_ws(node):
-        name = node.find("name").text
-        href = node.find("{http://www.w3.org/2005/Atom}link").get("href")
-        return Workspace(self,name, href)
-    return [extract_ws(node) for node in description.findall("workspace")]
+    return [Workspace(self, node) for node in description.findall("workspace")]
 
   def get_workspace(self, name):
     href = "%s/workspaces/%s.xml" % (self.service_url, name)
     ws  = self.get_xml(href)
     name = ws.find("name").text
     # href = ws.find("{http://www.w3.org/2005/Atom}link").get("href").text
-    return Workspace(self,name, href)
+    return Workspace(self, name, href)
 
   def get_default_workspace(self):
     return self.get_workspace("default")

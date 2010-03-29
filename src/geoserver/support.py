@@ -1,6 +1,5 @@
 from xml.etree.ElementTree import TreeBuilder, tostring
 from tempfile import mkstemp
-import httplib2
 from zipfile import ZipFile
 
 
@@ -35,6 +34,8 @@ class ResourceInfo(object):
 
   def update(self):
     self.metadata = self.catalog.get_xml(self.href)
+    if self.metadata is None: 
+        raise Exception("no xml found at " + self.href)
     name = self.metadata.find('name')
     self.name = name.text if name is not None else None
 

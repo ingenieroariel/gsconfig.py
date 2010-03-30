@@ -1,6 +1,15 @@
 from geoserver.support import ResourceInfo, atom_link, atom_link_xml, bbox, bbox_xml, FORCE_NATIVE, FORCE_DECLARED, REPROJECT
 from xml.etree.ElementTree import tostring
 
+def md_link(node):
+    """Extract a metadata link tuple from an xml node"""
+    mimetype = node.find("type")
+    mdtype = node.find("metadataType")
+    content = node.find("content")
+    if None in [mimetype, mdtype, content]:
+        return None
+    else:
+        return (mimetype.text, mdtype.text, content.text)
 
 class FeatureType(ResourceInfo):
   resource_type = "featureType"
@@ -64,7 +73,10 @@ class FeatureType(ResourceInfo):
     """A list of names of the fields in this featuretype, as strings."""
 
     self.metadata_links = []
-    """A list of the metadata links for this featuretype, as (mimetype, metadatatype, url) tuples"""
+    """
+    A list of the metadata links for this featuretype, as (mimetype,
+    metadatatype, url) tuples
+    """
 
     self.update()
 
@@ -76,7 +88,7 @@ class FeatureType(ResourceInfo):
     projection = self.metadata.find("srs")
     projection_policy = self.metadata.find("projectionPolicy")
     enabled = self.metadata.find("enabled")
-    mdlinks = self.metadata.find("metadataLinks/metadataLink")
+    md_links = self.metadata.findall("metadataLinks/metadataLink")
 
     self.title = title.text if title is not None else None
     self.abstract = abstract.text if abstract is not None else None
@@ -97,15 +109,7 @@ class FeatureType(ResourceInfo):
     self.native_bbox = bbox(self.metadata.find("nativeBoundingBox"))
     self.extra_config = dict((entry.attrib["key"], entry.text) for entry in self.metadata.findall("metadata/entry"))
     self.attributes = [att.text for att in self.metadata.findall("attributes/attribute/name")]
-
-    def md_link(node):
-        mimetype = node.find("type")
-        mdtype = node.find("metadataType")
-        content = node.find("content")
-        if None in [mimetype, mdtype, content]:
-            return None
-        else:
-            return (mimetype.text, mdtype.text, content.text)
+    self.metadata_links = [md_link(n) for n in self.metadata.findall("metadataLinks/metadataLink")]
 
   def encode(self, builder):
     builder.start("name", dict())
@@ -343,6 +347,12 @@ class Coverage(ResourceInfo):
     respond to queries against this coverage
     """
 
+    self.metadata_links = []
+    """
+    A list of the metadata links for this featuretype, as (mimetype,
+    metadatatype, url) tuples
+    """
+
     self.request_srs = None
     """ ??? """
 
@@ -386,6 +396,7 @@ class Coverage(ResourceInfo):
     self.interpolation_methods = [method.text for method in doc.findall("interpolationMethods/string")]
     self.request_srs = request_srs.text if request_srs is not None else None
     self.response_srs = response_srs.text if response_srs is not None else None
+    self.metadata_links = [md_link(n) for n in self.metadata.findall("metadataLinks/metadataLink")]
 
   def encode(self, builder):
     builder.start("title", dict())

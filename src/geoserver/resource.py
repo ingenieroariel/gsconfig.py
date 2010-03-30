@@ -219,8 +219,9 @@ def coverage_dimension(node):
     min = node.find("range/min")
     max = node.find("range/max")
     range = None
-    if None not in [name, description, min, max]:
+    if None not in [min, max]:
         range = float(min.text), float(max.text)
+    if None not in [name, description]:
         return CoverageDimension(name, description, range)
     else:
         return None # should we bomb out more spectacularly here?

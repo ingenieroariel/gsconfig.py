@@ -65,7 +65,7 @@ class DataStore(ResourceInfo):
 
 class CoverageStore(ResourceInfo):
     """
-    XXX 
+    XXX
     """
     resource_type = 'coverageStore'
 

@@ -62,7 +62,6 @@ class CatalogTests(unittest.TestCase):
 
 
   def testLayers(self):
-
     expected = set(["Arc_Sample", "Pk50095", "Img_Sample", "mosaic", "sfdem",
       "bugsites", "restricted", "streams", "archsites", "roads",
       "tasmania_roads", "tasmania_water_bodies", "tasmania_state_boundaries",

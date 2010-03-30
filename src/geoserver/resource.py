@@ -63,6 +63,9 @@ class FeatureType(ResourceInfo):
     self.attributes = []
     """A list of names of the fields in this featuretype, as strings."""
 
+    self.metadata_links = []
+    """A list of the metadata links for this featuretype, as (mimetype, metadatatype, url) tuples"""
+
     self.update()
 
   def update(self):
@@ -73,21 +76,11 @@ class FeatureType(ResourceInfo):
     projection = self.metadata.find("srs")
     projection_policy = self.metadata.find("projectionPolicy")
     enabled = self.metadata.find("enabled")
+    mdlinks = self.metadata.find("metadataLinks/metadataLink")
 
-    if title is not None:
-        self.title = title.text
-    else:
-        self.title = None
-
-    if abstract is not None:
-        self.abstract = abstract.text
-    else:
-        self.abstract = None
-
-    if projection is not None:
-        self.projection = projection.text
-    else:
-        self.projection = None
+    self.title = title.text if title is not None else None
+    self.abstract = abstract.text if abstract is not None else None
+    self.projection = projection.text if projection is not None else None
 
     if projection_policy is not None and projection_policy.text in [REPROJECT, FORCE_NATIVE, FORCE_DECLARED]:
         self.projection_policy = projection_policy.text
@@ -104,6 +97,15 @@ class FeatureType(ResourceInfo):
     self.native_bbox = bbox(self.metadata.find("nativeBoundingBox"))
     self.extra_config = dict((entry.attrib["key"], entry.text) for entry in self.metadata.findall("metadata/entry"))
     self.attributes = [att.text for att in self.metadata.findall("attributes/attribute/name")]
+
+    def md_link(node):
+        mimetype = node.find("type")
+        mdtype = node.find("metadataType")
+        content = node.find("content")
+        if None in [mimetype, mdtype, content]:
+            return None
+        else:
+            return (mimetype.text, mdtype.text, content.text)
 
   def encode(self, builder):
     builder.start("name", dict())
@@ -165,6 +167,22 @@ class FeatureType(ResourceInfo):
     builder.start("projectionPolicy", dict())
     builder.data(self.projection_policy)
     builder.end("projectionPolicy")
+
+    builder.start("metadataLinks", dict())
+    for link in self.metadata_links:
+        mimetype, mdtype, url = link
+        builder.start("metadataLink", dict())
+        builder.start("type", dict())
+        builder.data(mimetype)
+        builder.end("type")
+        builder.start("metadataType", dict())
+        builder.data(mdtype)
+        builder.end("metadataType")
+        builder.start("content", dict())
+        builder.data(url)
+        builder.end("content")
+        builder.end("metadataLink")
+    builder.end("metadataLinks")
 
     # builder.start("attributes")
     # for att in self.attributes:

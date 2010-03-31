@@ -8,8 +8,14 @@ from os import unlink
 import httplib2 
 from xml.etree.ElementTree import XML
 
+class UploadError(Exception):
+    pass
+
+class ConflictingDataError(Exception):
+    pass
+
 class AmbiguousRequestError(Exception):
-  pass 
+    pass 
 
 class Catalog:
   """
@@ -99,7 +105,10 @@ class Catalog:
               stores.extend(a)
           return stores
 
-  def create_featurestore(self, name, data, workspace=None):
+  def create_featurestore(self, name, data, workspace=None, overwrite=False):
+    if overwrite == False and self.get_store(name, workspace) is not None:
+        fullname = "%s :: %s" % (workspace.name, name) if workspace is not None else name
+        raise ConflictingDataError("There is already a store named %s" % fullname)
     if workspace is None:
       workspace = self.get_default_workspace()
     ds_url = "%s/workspaces/%s/datastores/%s/file.shp" % (self.service_url, workspace.name, name)
@@ -111,11 +120,16 @@ class Catalog:
     zip = prepare_upload_bundle(name, data)
     message = open(zip).read()
     try:
-      response = self.http.request(ds_url, "PUT", message, headers)
+      headers, response = self.http.request(ds_url, "PUT", message, headers)
+      if headers.status != 201:
+          raise UploadError(response)
     finally:
       unlink(zip)
 
-  def create_coveragestore(self, name, data, workspace=None):
+  def create_coveragestore(self, name, data, workspace=None, overwrite=False):
+    if overwrite == False and self.get_store(name, workspace) is not None:
+        fullname = "%s :: %s" % (workspace.name, name) if workspace is not None else name
+        raise ConflictingDataError("There is already a store named %s" % fullname)
     if workspace is None:
       workspace = self.get_default_workspace()
     headers = {
@@ -138,7 +152,9 @@ class Catalog:
 
     cs_url = "%s/workspaces/%s/coveragestores/%s/file.%s" % (self.service_url, workspace.name, name, ext)
     try:
-      response = self.http.request(cs_url, "PUT", message, headers)
+      headers, response = self.http.request(cs_url, "PUT", message, headers)
+      if headers.status != 201:
+          raise UploadError(response)
     finally:
       if zip is not None:
         unlink(zip)
@@ -242,7 +258,12 @@ class Catalog:
       return candidates[0]
 
   def get_default_workspace(self):
-    return self.get_workspace("default")
+      return Workspace(self, XML("""
+          <workspace>
+              <atom:link xmlns:atom="%s" href="%s/workspaces/default.xml"></atom:link>
+          </workspace>
+      """ % ("http://www.w3.org/2005/Atom", self.service_url)
+      ))
 
   def set_default_workspace(self):
     raise NotImplementedError()

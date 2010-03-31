@@ -1,5 +1,5 @@
 import unittest
-from geoserver.catalog import Catalog
+from geoserver.catalog import Catalog, ConflictingDataError, UploadError
 from geoserver.util import shapefile_and_friends
 
 class CatalogTests(unittest.TestCase):
@@ -125,7 +125,7 @@ class ModifyingTests(unittest.TestCase):
     self.assertEqual(old_abstract, rs.abstract)
 
   def testFeatureTypeCreate(self):
-    shapefile_plus_boxcars = shapefile_and_friends("test/data/states")
+    shapefile_plus_sidecars = shapefile_and_friends("test/data/states")
     expected = {
       'shp': 'test/data/states.shp',
       'shx': 'test/data/states.shx',
@@ -133,16 +133,36 @@ class ModifyingTests(unittest.TestCase):
       'prj': 'test/data/states.prj'
     }
 
-    self.assertEqual(len(expected), len(shapefile_plus_boxcars))
+    self.assertEqual(len(expected), len(shapefile_plus_sidecars))
     for k, v in expected.iteritems():
-      self.assertEqual(v, shapefile_plus_boxcars[k])
+      self.assertEqual(v, shapefile_plus_sidecars[k])
  
     sf = self.cat.get_workspace("sf")
-    ft = self.cat.create_featurestore("states_test", shapefile_plus_boxcars, sf)
+    ft = self.cat.create_featurestore("states_test", shapefile_plus_sidecars, sf)
 
-    # Will throw exception if the resource isn't found; no explicit assertion
-    # needed
-    self.cat.get_resource("states_test", workspace=sf)
+    self.assert_(self.cat.get_resource("states_test", workspace=sf) is not None)
+
+    self.assertRaises(
+        ConflictingDataError, 
+        lambda: self.cat.create_featurestore("states_test", shapefile_plus_sidecars, sf)
+    )
+
+    self.assertRaises(
+        UploadError,
+        lambda: self.cat.create_coveragestore("states_raster_test", shapefile_plus_sidecars, sf)
+    )
+
+    bogus_shp = {
+      'shp': 'test/data/Pk50095.tif',
+      'shx': 'test/data/Pk50095.tif',
+      'dbf':  'test/data/Pk50095.tfw',
+      'prj':  'test/data/Pk50095.prj'
+    }
+
+    self.assertRaises(
+        UploadError,
+        lambda: self.cat.create_featurestore("bogus_shp", bogus_shp, sf)
+    )
 
   def testCoverageCreate(self):
     tiffdata = {
@@ -154,9 +174,28 @@ class ModifyingTests(unittest.TestCase):
     sf = self.cat.get_workspace("sf")
     ft = self.cat.create_coveragestore("Pk50095", tiffdata, sf)
 
-    # Will throw exception if the resource isn't found; no explicit assertion
-    # needed
-    self.cat.get_resource("Pk50095", workspace=sf) 
+    self.assert_(self.cat.get_resource("Pk50095", workspace=sf) is not None)
+
+    self.assertRaises(
+        ConflictingDataError, 
+        lambda: self.cat.create_coveragestore("Pk50095", tiffdata, sf)
+    )
+
+    self.assertRaises(
+        UploadError, 
+        lambda: self.cat.create_featurestore("Pk50095_vector", tiffdata, sf)
+    )
+
+    bogus_tiff = {
+        'tiff': 'test/data/states.shp',
+        'tfw': 'test/data/states.shx',
+        'prj': 'test/data/states.prj'
+    }
+
+    self.assertRaises(
+        UploadError,
+        lambda: self.cat.create_coveragestore("states_raster", bogus_tiff)
+    )
 
   def testLayerSave(self):
     # test saving round trip

@@ -168,9 +168,10 @@ class FeatureType(ResourceInfo):
     atom_link_xml(builder, self.store.href)
     builder.end("store")
 
-    builder.start("projectionPolicy", dict())
-    builder.data(self.projection_policy)
-    builder.end("projectionPolicy")
+    if self.projection_policy is not None:
+        builder.start("projectionPolicy", dict())
+        builder.data(self.projection_policy)
+        builder.end("projectionPolicy")
 
     builder.start("metadataLinks", dict())
     for link in self.metadata_links:

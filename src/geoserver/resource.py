@@ -259,14 +259,16 @@ def coverage_dimension_xml(builder, dimension):
     builder.data(dimension.description)
     builder.end("description")
 
-    builder.start("range", dict())
-    builder.start("min", dict())
-    builder.data(str(dimension.range[0]))
-    builder.end("min")
-    builder.start("max", dict())
-    builder.data(str(dimension.range[1]))
-    builder.end("max")
-    builder.end("range")
+    if dimension.range is not None:
+        builder.start("range", dict())
+        builder.start("min", dict())
+        builder.data(str(dimension.range[0]))
+        builder.end("min")
+        builder.start("max", dict())
+        builder.data(str(dimension.range[1]))
+        builder.end("max")
+        builder.end("range")
+
     builder.end("coverageDimension")
 
 class Coverage(ResourceInfo):

@@ -55,7 +55,7 @@ class Catalog:
       "Content-type": "application/xml",
       "Accept": "application/xml"
     } 
-    response = self.http.request(url, "DELETE",headers=headers)
+    response = self.http.request(url, "DELETE", headers=headers)
     return response
 
   
@@ -133,7 +133,7 @@ class Catalog:
     if workspace is None:
       workspace = self.get_default_workspace()
     headers = {
-      "Content-type": "application/zip",
+      "Content-type": "image/tiff",
       "Accept": "application/xml"
     }
 
@@ -144,6 +144,7 @@ class Catalog:
       zip = prepare_upload_bundle(name, data)
       message = open(zip).read()
       if "tfw" in data:
+        headers['Content-type'] = 'application/zip'
         ext = "worldimage"
     elif isinstance(data, basestring):
       message = open(data).read()

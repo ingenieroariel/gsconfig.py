@@ -131,13 +131,15 @@ class FeatureType(ResourceInfo):
         builder.end("string")
     builder.end("keywords")
 
-    builder.start("nativeBoundingBox", dict())
-    bbox_xml(builder, self.native_bbox)
-    builder.end("nativeBoundingBox")
+    if self.native_bbox is not None:
+        builder.start("nativeBoundingBox", dict())
+        bbox_xml(builder, self.native_bbox)
+        builder.end("nativeBoundingBox")
 
-    builder.start("latLonBoundingBox", dict())
-    bbox_xml(builder, self.latlon_bbox)
-    builder.end("latLonBoundingBox")
+    if self.latlon_bbox is not None:
+        builder.start("latLonBoundingBox", dict())
+        bbox_xml(builder, self.latlon_bbox)
+        builder.end("latLonBoundingBox")
 
     # builder.start("nativeCRS", {'class': 'projected'})
     # builder.data(self.native_crs)
@@ -417,13 +419,15 @@ class Coverage(ResourceInfo):
         builder.end("string")
     builder.end("keywords")
 
-    builder.start("nativeBoundingBox", dict())
-    bbox_xml(builder, self.native_bbox)
-    builder.end("nativeBoundingBox")
+    if self.native_bbox is not None:
+        builder.start("nativeBoundingBox", dict())
+        bbox_xml(builder, self.native_bbox)
+        builder.end("nativeBoundingBox")
 
-    builder.start("latLonBoundingBox", dict())
-    bbox_xml(builder, self.latlon_bbox)
-    builder.end("latLonBoundingBox")
+    if self.latlon_bbox is not None:
+        builder.start("latLonBoundingBox", dict())
+        bbox_xml(builder, self.latlon_bbox)
+        builder.end("latLonBoundingBox")
 
     builder.start("srs", dict())
     builder.data(self.projection)

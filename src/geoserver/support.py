@@ -100,8 +100,10 @@ def bbox(node):
         miny = node.find("miny")
         maxy = node.find("maxy")
         crs  = node.find("crs")
-        if (None not in [minx, maxx, miny, maxy, crs]):
-            return (minx.text, maxx.text, miny.text, maxy.text, crs.text)
+        crs  = crs.text if crs is not None else None
+
+        if (None not in [minx, maxx, miny, maxy]):
+            return (minx.text, maxx.text, miny.text, maxy.text, crs)
         else: 
             return None
     else:
@@ -121,7 +123,8 @@ def bbox_xml(builder, bbox):
     builder.start("maxy", dict())
     builder.data(maxy)
     builder.end("maxy")
-    builder.start("crs", {"class": "projected"})
-    builder.data(crs)
-    builder.end("crs")
+    if crs is not None:
+        builder.start("crs", {"class": "projected"})
+        builder.data(crs)
+        builder.end("crs")
 

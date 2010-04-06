@@ -468,9 +468,10 @@ class Coverage(ResourceInfo):
     # builder.data(self.grid)
     # builder.end("grid")
 
-    builder.start("defaultInterpolationMethod", dict())
-    builder.data(self.default_interpolation_method)
-    builder.end("defaultInterpolationMethod")
+    if self.default_interpolation_method is not None:
+        builder.start("defaultInterpolationMethod", dict())
+        builder.data(self.default_interpolation_method)
+        builder.end("defaultInterpolationMethod")
 
     builder.start("interpolationMethods", dict())
     for method in self.interpolation_methods:

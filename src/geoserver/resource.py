@@ -120,9 +120,10 @@ class FeatureType(ResourceInfo):
     builder.data(self.title)
     builder.end("title")
 
-    builder.start("abstract", dict())
-    builder.data(self.abstract)
-    builder.end("abstract")
+    if self.abstract is not None:
+        builder.start("abstract", dict())
+        builder.data(self.abstract)
+        builder.end("abstract")
 
     builder.start("keywords", dict())
     for kw in self.keywords:
@@ -408,9 +409,10 @@ class Coverage(ResourceInfo):
     builder.data(self.title)
     builder.end("title")
 
-    builder.start("description", dict())
-    builder.data(self.abstract)
-    builder.end("description")
+    if self.abstract is not None:
+        builder.start("description", dict())
+        builder.data(self.abstract)
+        builder.end("description")
 
     builder.start("keywords", dict())
     for kw in self.keywords:

@@ -224,7 +224,6 @@ class FeatureType(ResourceInfo):
     """
     pass 
 
-
   def get_url(self, service_url):
     return self.href
 

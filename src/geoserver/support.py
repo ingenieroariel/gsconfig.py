@@ -32,6 +32,9 @@ class ResourceInfo(object):
   resource_type = 'abstractResourceType'
   """A string identifier for the *type* of resource, such as layer or style"""
 
+  def get_url(self, base):
+      return self.href
+
   def update(self):
     self.metadata = self.catalog.get_xml(self.href)
     if self.metadata is None: 

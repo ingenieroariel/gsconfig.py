@@ -104,7 +104,7 @@ class FeatureType(ResourceInfo):
     else: 
         self.enabled = False
 
-    self.keywords = [word.text for word in keywords]
+    self.keywords = [(word.text or "") for word in keywords]
     self.latlon_bbox = bbox(self.metadata.find("latLonBoundingBox"))
     self.native_bbox = bbox(self.metadata.find("nativeBoundingBox"))
     self.extra_config = dict((entry.attrib["key"], entry.text) for entry in self.metadata.findall("metadata/entry"))
@@ -387,7 +387,7 @@ class Coverage(ResourceInfo):
 
     self.title = title.text if title is not None else None
     self.abstract = abstract.text if abstract is not None else None
-    self.keywords = [kw.text for kw in doc.findall("keywords/string")]
+    self.keywords = [(kw.text or None) for kw in doc.findall("keywords/string")]
     self.native_bbox = bbox(doc.find("nativeBoundingBox"))
     self.latlon_bbox = bbox(doc.find("latLonBoundingBox"))
     self.projection = projection.text if projection is not None else None

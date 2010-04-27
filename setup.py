@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(name = "GSConfig",
     version = "1.0",
@@ -12,6 +12,7 @@ setup(name = "GSConfig",
     author_email = "dwinslow@opengeo.org",
     install_requires = ['httplib2'],
     package_dir = {'':'src'},
+    packages = find_packages('src'),
     test_suite = "test.catalogtests"
 ) 
 

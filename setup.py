@@ -2,7 +2,7 @@
 
 from setuptools import setup, find_packages
 
-setup(name = "GSConfig",
+setup(name = "gsconfig.py",
     version = "1.0",
     description = "GeoServer REST Configuration Client",
     keywords = "GeoServer REST Configuration",

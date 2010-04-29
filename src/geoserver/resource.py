@@ -493,5 +493,21 @@ class Coverage(ResourceInfo):
     builder.end("string")
     builder.end("responseSRS")
 
+    builder.start("metadataLinks", dict())
+    for link in self.metadata_links:
+        mimetype, mdtype, url = link
+        builder.start("metadataLink", dict())
+        builder.start("type", dict())
+        builder.data(mimetype)
+        builder.end("type")
+        builder.start("metadataType", dict())
+        builder.data(mdtype)
+        builder.end("metadataType")
+        builder.start("content", dict())
+        builder.data(url)
+        builder.end("content")
+        builder.end("metadataLink")
+    builder.end("metadataLinks")
+
   def __repr__(self):
     return "%s :: %s" % (self.store, self.name)

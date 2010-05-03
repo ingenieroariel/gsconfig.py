@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from geoserver.layer import Layer
 from geoserver.store import DataStore, CoverageStore
 from geoserver.style import Style
@@ -38,6 +39,7 @@ class Catalog(object):
     self.username = username
     self.password = password
     self.http.add_credentials(self.username, self.password)
+    self._cache = dict()
 
   def add(self, object):
     raise NotImplementedError()
@@ -56,15 +58,25 @@ class Catalog(object):
       "Accept": "application/xml"
     } 
     response = self.http.request(url, "DELETE", headers=headers)
+    self._cache.clear()
     return response
 
   
-  def get_xml(self,url):
-    response, content = self.http.request(url)
-    if response.status == 200:
-        return XML(content)
+  def get_xml(self, url):
+    cached_response = self._cache.get(url)
+
+    def is_valid(cached_response):
+        return cached_response is not None and datetime.now() - cached_response[0] < timedelta(seconds=5)
+
+    if is_valid(cached_response):
+        return XML(cached_response[1])
     else:
-        return None
+        response, content = self.http.request(url)
+        if response.status == 200:
+            self._cache[url] = (datetime.now(), content)
+            return XML(content)
+        else:
+            return None
 
   def save(self, object):
     """
@@ -80,6 +92,7 @@ class Catalog(object):
       "Accept": "application/xml"
     }
     response = self.http.request(url, "PUT", message, headers)
+    self._cache.clear()
     return response
 
   def get_store(self, name, workspace=None):
@@ -121,6 +134,7 @@ class Catalog(object):
     message = open(zip).read()
     try:
       headers, response = self.http.request(ds_url, "PUT", message, headers)
+      self._cache.clear()
       if headers.status != 201:
           raise UploadError(response)
     finally:
@@ -154,6 +168,7 @@ class Catalog(object):
     cs_url = "%s/workspaces/%s/coveragestores/%s/file.%s" % (self.service_url, workspace.name, name, ext)
     try:
       headers, response = self.http.request(cs_url, "PUT", message, headers)
+      self._cache.clear()
       if headers.status != 201:
           raise UploadError(response)
     finally:

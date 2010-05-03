@@ -17,7 +17,7 @@ class ConflictingDataError(Exception):
 class AmbiguousRequestError(Exception):
     pass 
 
-class Catalog:
+class Catalog(object):
   """
   The GeoServer catalog represents all of the information in the GeoServer
   configuration.  This includes:

@@ -1,4 +1,5 @@
 from geoserver.support import ResourceInfo, atom_link
+import re
 
 class Style(ResourceInfo):
   def __init__(self,catalog, node):
@@ -22,6 +23,10 @@ class Style(ResourceInfo):
     # Store the text value of sld name and title if present
     self.sld_name = name_node.text if hasattr(name_node, 'text') else None
     self.sld_title = title_node.text if hasattr(title_node, 'text') else None
+
+  def body_href(self):
+      style_container = re.sub(r"/rest$", "/styles", self.catalog.service_url)
+      return "%s/%s" % (style_container, self.filename)
 
   def __repr__(self):
     return "Style[%s]" % self.name

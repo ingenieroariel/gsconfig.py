@@ -222,7 +222,11 @@ class Catalog(object):
 
   def get_layers(self, resource=None, style=None):
     description = self.get_xml("%s/layers.xml" % self.service_url)
-    return [Layer(self,l) for l in description.findall("layer")]
+    lyrs = [Layer(self, l) for l in description.findall("layer")]
+    if resource is not None:
+      lyrs = [l for l in lyrs if l.resource.href == resource.href]
+    # TODO: Filter by style
+    return lyrs
 
   def get_maps(self):
     raise NotImplementedError()

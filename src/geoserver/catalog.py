@@ -254,6 +254,25 @@ class Catalog(object):
   def get_styles(self):
     description = self.get_xml("%s/styles.xml" % self.service_url)
     return [Style(self,s) for s in description.findall("style")]
+
+  def create_style(self, name, data, overwrite = False):
+    if overwrite == False and self.get_style(name) is not None:
+      raise ConflictingDataError("There is already a style named %s" % name)
+
+    headers = {
+      "Content-type": "application/vnd.ogc.sld+xml",
+      "Accept": "application/xml"
+    }
+
+    if overwrite:
+      style_url = "%s/styles/%s.sld" % (self.service_url, name)
+      headers, response = self.http.request(style_url, "PUT", data, headers)
+    else:
+      style_url = "%s/styles" % (self.service_url)
+      headers, response = self.http.request(style_url, "POST", data, headers)
+
+    self._cache.clear()
+    if headers.status < 200 or headers.status > 299: raise UploadError(response)
   
   def get_namespace(self, id=None, prefix=None, uri=None):
     raise NotImplementedError()

@@ -35,6 +35,8 @@ class Catalog(object):
 
   def __init__(self, url, username="admin", password="geoserver"):
     self.service_url = url
+    if self.service_url.endswith("/"):
+        self.service_url = self.service_url.strip("/")
     self.http = httplib2.Http()
     self.username = username
     self.password = password

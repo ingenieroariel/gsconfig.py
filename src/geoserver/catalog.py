@@ -212,13 +212,14 @@ class Catalog(object):
     return resources
 
   def get_layer(self, name=None):
-    layers = [l for l in self.get_layers() if l.name == name]
+    description = self.get_xml("%s/layers.xml" % self.service_url)
+    layers = [l for l in description.findall("layer") if l.find("name").text == name]
     if len(layers) == 0:
       return None
     elif len(layers) > 1:
       raise AmbiguousRequestError("%s does not uniquely identify a layer" % name)
     else:
-      return layers[0]
+      return Layer(self, layers[0])
 
   def get_layers(self, resource=None, style=None):
     description = self.get_xml("%s/layers.xml" % self.service_url)
@@ -243,13 +244,14 @@ class Catalog(object):
     return [LayerGroup(self,group) for group in groups.findall("layerGroup")]
 
   def get_style(self, name):
-    candidates = filter(lambda x: x.name == name, self.get_styles())
+    description = self.get_xml("%s/styles.xml" % self.service_url)
+    candidates = [l for l in description.findall("style") if l.find("name").text == name]
     if len(candidates) == 0:
       return None
     elif len(candidates) > 1:
       raise AmbiguousRequestError()
     else:
-      return candidates[0]
+      return Style(self, candidates[0])
 
   def get_styles(self):
     description = self.get_xml("%s/styles.xml" % self.service_url)

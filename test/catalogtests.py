@@ -164,6 +164,12 @@ class ModifyingTests(unittest.TestCase):
         lambda: self.cat.create_featurestore("bogus_shp", bogus_shp, sf)
     )
 
+    lyr = self.cat.get_layer("states_test")
+    print lyr
+    self.cat.delete(lyr)
+    self.assert_(self.cat.get_layer("states_test") is None)
+
+
   def testCoverageCreate(self):
     tiffdata = {
       'tiff': 'test/data/Pk50095.tif',
@@ -214,12 +220,6 @@ class ModifyingTests(unittest.TestCase):
     self.cat.save(lyr)
     self.assertEqual(old_attribution, lyr.attribution)
 
-
-  def testLayerDelete(self):
-    lyr = self.cat.get_layer("states_test") 
-    self.cat.delete(lyr)
-    self.assert_(self.cat.get_layer("states_test") is None)
-    
   def testWorkspaceDelete(self): 
     pass 
 

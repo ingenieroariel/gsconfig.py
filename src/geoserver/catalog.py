@@ -18,6 +18,9 @@ class ConflictingDataError(Exception):
 class AmbiguousRequestError(Exception):
     pass 
 
+class FailedRequestError(Exception):
+    pass
+
 class Catalog(object):
   """
   The GeoServer catalog represents all of the information in the GeoServer
@@ -78,7 +81,7 @@ class Catalog(object):
             self._cache[url] = (datetime.now(), content)
             return XML(content)
         else:
-            return None
+            raise FailedRequestError("Tried to make a GET request to %s but got a %d status code: \n%s" % (url, response.status, content))
 
   def save(self, object):
     """
@@ -95,6 +98,7 @@ class Catalog(object):
     }
     response = self.http.request(url, "PUT", message, headers)
     self._cache.clear()
+    print response
     return response
 
   def get_store(self, name, workspace=None):
@@ -287,6 +291,13 @@ class Catalog(object):
   def set_default_namespace(self):
     raise NotImplementedError()
 
+  def create_workspace(self, name, uri):
+    xml = ""
+    "<namespace>"
+    "  <prefix>{name}</prefix>"
+    "  <uri>{uri}</prefix>"
+    "</namespace>".format({"name": name, "uri": uri})
+
   def get_workspaces(self):
     description = self.get_xml("%s/workspaces.xml" % self.service_url)
     return [Workspace(self, node) for node in description.findall("workspace")]
@@ -299,6 +310,15 @@ class Catalog(object):
       raise AmbiguousRequestError()
     else:
       return candidates[0]
+
+  def reassign_workspace(self, store, workspace):
+    def _create_forcing_workspace(self, store, workspace):
+      pass
+    def _dupe_resource(res, newstore): pass
+    newstore = _create_forcing_workspace(self, store, workspace)
+    for res in cat.get_resources(store):
+      dupe_resource(res, newstore)
+    self.delete(store, purge=True)
 
   def get_default_workspace(self):
       return Workspace(self, XML("""

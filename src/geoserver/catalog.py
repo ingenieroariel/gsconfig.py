@@ -103,12 +103,27 @@ class Catalog(object):
 
   def get_store(self, name, workspace=None):
       stores = [s for s in self.get_stores(workspace) if s.name == name]
-      if len(stores) == 0:
-          return None
-      elif len(stores) > 1:
-          raise AmbiguousRequestError("%s does not uniquely identify a layer" % name)
-      else:
-          return stores[0]
+      if workspace is None:
+          if len(stores) == 0:
+              return None
+          elif len(stores) > 1:
+              raise AmbiguousRequestError("%s does not uniquely identify a layer" % name)
+          else:
+              return stores[0]
+      else: # workspace is not None
+          ds_list = self.get_xml(workspace.datastore_url)
+          cs_list = self.get_xml(workspace.coveragestore_url)
+          datastores = [n for n in ds_list.findall("dataStore") if n.find("name").text == name]
+          coveragestores = [n for n in cs_list.findall("coverageStore") if n.find("name").text == name]
+          ds_len, cs_len = len(datastores), len(coveragestores)
+          if ds_len == 1 and cs_len == 0:
+              return DataStore(self, datastores[0])
+          elif ds_len == 0 and cs_len == 1:
+              return CoverageStore(self, datastores[0])
+          elif ds_len == 0 and cs_len == 0:
+              raise FailedRequestError("No store found in " + str(workspace) + " named: " + name)
+          else:
+              raise AmbiguousRequestError(str(workspace) + " and name: " + name + " do not uniquely identify a layer")
 
   def get_stores(self, workspace=None):
       if workspace is not None:

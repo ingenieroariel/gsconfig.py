@@ -163,7 +163,7 @@ class Catalog(object):
   def create_featurestore(self, name, data, workspace=None, overwrite=False):
     if not overwrite:
         try:
-            store = self.get_store(name)
+            store = self.get_store(name, workspace)
             msg = "There is already a store named " + name
             if workspace: 
                 msg += " in " + str(workspace)
@@ -193,7 +193,7 @@ class Catalog(object):
   def create_coveragestore(self, name, data, workspace=None, overwrite=False):
     if not overwrite:
         try:
-            store = self.get_store(name)
+            store = self.get_store(name, workspace)
             msg = "There is already a store named " + name
             if workspace: 
                 msg += " in " + str(workspace)

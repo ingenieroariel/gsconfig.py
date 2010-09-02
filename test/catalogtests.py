@@ -165,7 +165,6 @@ class ModifyingTests(unittest.TestCase):
     )
 
     lyr = self.cat.get_layer("states_test")
-    print lyr
     self.cat.delete(lyr)
     self.assert_(self.cat.get_layer("states_test") is None)
 

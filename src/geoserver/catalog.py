@@ -111,8 +111,12 @@ class Catalog(object):
               except:
                   # don't expect every workspace to contain the named store
                   pass
-              if found and store:
-                  raise AmbiguousRequestError("Multiple stores found named: " + name)
+              if found:
+                  if store:
+                      raise AmbiguousRequestError("Multiple stores found named: " + name)
+                  else:
+                      store = found
+
           if not store:
               raise FailedRequestError("No store found named: " + name)
           return store
@@ -122,10 +126,11 @@ class Catalog(object):
           datastores = [n for n in ds_list.findall("dataStore") if n.find("name").text == name]
           coveragestores = [n for n in cs_list.findall("coverageStore") if n.find("name").text == name]
           ds_len, cs_len = len(datastores), len(coveragestores)
+
           if ds_len == 1 and cs_len == 0:
               return DataStore(self, datastores[0])
           elif ds_len == 0 and cs_len == 1:
-              return CoverageStore(self, datastores[0])
+              return CoverageStore(self, coveragestores[0])
           elif ds_len == 0 and cs_len == 0:
               raise FailedRequestError("No store found in " + str(workspace) + " named: " + name)
           else:
@@ -146,9 +151,17 @@ class Catalog(object):
           return stores
 
   def create_featurestore(self, name, data, workspace=None, overwrite=False):
-    if overwrite == False and self.get_store(name, workspace) is not None:
-        fullname = "%s :: %s" % (workspace.name, name) if workspace is not None else name
-        raise ConflictingDataError("There is already a store named %s" % fullname)
+    if not overwrite:
+        try:
+            store = self.get_store(name)
+            msg = "There is already a store named " + name
+            if workspace: 
+                msg += " in " + str(workspace)
+            raise ConflictingDataError(msg)
+        except FailedRequestError, e:
+            # we don't really expect that every layer name will be taken
+            pass
+
     if workspace is None:
       workspace = self.get_default_workspace()
     ds_url = "%s/workspaces/%s/datastores/%s/file.shp" % (self.service_url, workspace.name, name)
@@ -168,9 +181,17 @@ class Catalog(object):
       unlink(zip)
 
   def create_coveragestore(self, name, data, workspace=None, overwrite=False):
-    if overwrite == False and self.get_store(name, workspace) is not None:
-        fullname = "%s :: %s" % (workspace.name, name) if workspace is not None else name
-        raise ConflictingDataError("There is already a store named %s" % fullname)
+    if not overwrite:
+        try:
+            store = self.get_store(name)
+            msg = "There is already a store named " + name
+            if workspace: 
+                msg += " in " + str(workspace)
+            raise ConflictingDataError(msg)
+        except FailedRequestError, e:
+            # we don't really expect that every layer name will be taken
+            pass
+
     if workspace is None:
       workspace = self.get_default_workspace()
     headers = {

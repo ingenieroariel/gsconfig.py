@@ -98,7 +98,6 @@ class Catalog(object):
     }
     response = self.http.request(url, "PUT", message, headers)
     self._cache.clear()
-    print response
     return response
 
   def get_store(self, name, workspace=None):

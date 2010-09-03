@@ -4,7 +4,7 @@ from geoserver.util import shapefile_and_friends
 
 class CatalogTests(unittest.TestCase):
   def setUp(self):
-    self.cat = Catalog("http://localhost:8080/geoserver/rest")
+    self.cat = Catalog("http://blargh:8080/geoserver/rest")
 
 
   def testWorkspaces(self):

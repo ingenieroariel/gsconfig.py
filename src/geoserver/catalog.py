@@ -8,6 +8,7 @@ from geoserver.workspace import Workspace
 from os import unlink
 import httplib2 
 from xml.etree.ElementTree import XML
+from urlparse import urlparse
 
 class UploadError(Exception):
     pass
@@ -44,10 +45,11 @@ class Catalog(object):
     self.username = username
     self.password = password
     self.http.add_credentials(self.username, self.password)
+    netloc = urlparse(url).netloc
     self.http.authorizations.append(
         httplib2.BasicAuthentication(
             (username, password), 
-            "localhost:8001",
+            netloc,
             url,
             {},
             None,

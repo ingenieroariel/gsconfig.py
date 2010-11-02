@@ -430,9 +430,10 @@ class Coverage(ResourceInfo):
         bbox_xml(builder, self.latlon_bbox)
         builder.end("latLonBoundingBox")
 
-    builder.start("srs", dict())
-    builder.data(self.projection)
-    builder.end("srs")
+    if self.projection is not None:
+        builder.start("srs", dict())
+        builder.data(self.projection)
+        builder.end("srs")
 
     builder.start("enabled", dict())
     if self.enabled:
@@ -481,17 +482,19 @@ class Coverage(ResourceInfo):
         builder.end("string")
     builder.end("interpolationMethods")
 
-    builder.start("requestSRS", dict())
-    builder.start("string", dict())
-    builder.data(self.request_srs)
-    builder.end("string")
-    builder.end("requestSRS")
+    if self.request_srs is not None:
+        builder.start("requestSRS", dict())
+        builder.start("string", dict())
+        builder.data(self.request_srs)
+        builder.end("string")
+        builder.end("requestSRS")
 
-    builder.start("responseSRS", dict())
-    builder.start("string", dict())
-    builder.data(self.response_srs)
-    builder.end("string")
-    builder.end("responseSRS")
+    if self.response_srs is not None:
+        builder.start("responseSRS", dict())
+        builder.start("string", dict())
+        builder.data(self.response_srs)
+        builder.end("string")
+        builder.end("responseSRS")
 
     builder.start("metadataLinks", dict())
     for link in self.metadata_links:

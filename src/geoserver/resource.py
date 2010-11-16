@@ -146,9 +146,10 @@ class FeatureType(ResourceInfo):
     # builder.data(self.native_crs)
     # builder.end("nativeCRS")
 
-    builder.start("srs", dict())
-    builder.data(self.projection)
-    builder.end("srs")
+    if self.projection is not None:
+        builder.start("srs", dict())
+        builder.data(self.projection)
+        builder.end("srs")
 
     builder.start("enabled", dict())
     if self.enabled:

@@ -1,67 +1,37 @@
-from geoserver import workspace
+import geoserver.workspace as ws
 from geoserver.resource import FeatureType, Coverage
 from geoserver.support import ResourceInfo, atom_link
 
+def datastore_from_index(catalog, workspace, node):
+    name = node.find("name")
+    return DataStore(catalog, workspace, name.text)
+
 class DataStore(ResourceInfo):
-    """
-    XXX represents a Datastore in GeoServer
-    """
-    resource_type = 'dataStore'
+    def __init__(self, catalog, workspace, name):
+        super(DataStore, self).__init__()
 
-    def __init__(self, catalog, node, workspace=None):
-        # self.name = node.find("name").text
+        assert isinstance(workspace, ws.Workspace)
+        assert isinstance(name, basestring)
         self.catalog = catalog
-        self.href = atom_link(node)
-
-        self.name = None
-        """
-        A short identifier for this store, unique only within the workspace
-        """
-
-        self.enabled = False
-        """ Should resources from this datastore be served? """
-
         self.workspace = workspace
-        """ What workspace is the datastore a part of? """
+        self.name = name
 
-        self.connection_parameters = dict()
-        """ 
-        The connection parameters for this store, used by GeoServer to
-        connect to the underlying storage.
-        """
-
-        self.featuretypelist_url = None
-        """
-        The FeatureType resources provided by this datastore
-        """
-
-        self.update()
-
-    def update(self):
-        ResourceInfo.update(self)
-        enabled = self.metadata.find("enabled")
-        ws = self.metadata.find("workspace")
-        connection_parameters = self.metadata.findall("connectionParameters/entry")
-        feature_types = self.metadata.find("featureTypes")
-
-        if enabled is not None and enabled.text == "true":
-            self.enabled = True
-
-        self.workspace = workspace.workspace_from_index(self.catalog, ws) if ws is not None else None
-        self.connection_parameters = dict((entry.attrib['key'], entry.text) for entry in connection_parameters) 
-        self.featuretypelist_url = atom_link(feature_types)
-
-    def delete(self): 
-        raise NotImplementedError()
+    @property
+    def href(self):
+        return "%s/workspaces/%s/datastores/%s.xml" % (self.catalog.service_url, self.workspace.name, self.name)
 
     def get_resources(self):
-        doc = self.catalog.get_xml(self.featuretypelist_url)
-        return [FeatureType(self.catalog, n, self) for n in doc.findall("featureType")]
+        res_url = "%s/workspaces/%s/datastores/%s/featuretypes.xml" % (
+                   self.catalog.service_url,
+                   self.workspace.name,
+                   self.name
+                )
+        xml = self.catalog.get_xml(res_url)
+        def ft_from_node(node):
+            name = node.find("name")
+            return FeatureType(self.catalog, node, self)
 
-    def __repr__(self):
-        wsname = self.workspace.name if self.workspace is not None else None
-        return "DataStore[%s:%s]" % (wsname, self.name)
-
+        return [ft_from_node(node) for node in xml.findall("featureType")]
 
 class CoverageStore(ResourceInfo):
     """
@@ -109,7 +79,7 @@ class CoverageStore(ResourceInfo):
         ResourceInfo.update(self)
         type = self.metadata.find('type')
         enabled = self.metadata.find('enabled')
-        ws = self.metadata.find('workspace')
+        workspace = self.metadata.find('workspace')
         data_url = self.metadata.find('url')
         coverages = self.metadata.find('coverages')
 
@@ -119,7 +89,7 @@ class CoverageStore(ResourceInfo):
             self.enabled = False
 
         self.type = type.text if type is not None else None
-        self.workspace = workspace.workspace_from_index(self.catalog, ws) if ws is not None else None
+        self.workspace = ws.workspace_from_index(self.catalog, workspace) if workspace is not None else None
         self.data_url = data_url.text if data_url is not None else None
         self.coveragelist_url = atom_link(coverages)
 

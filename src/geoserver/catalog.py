@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from geoserver.layer import Layer
-from geoserver.store import DataStore, CoverageStore
+from geoserver.store import datastore_from_index, DataStore, CoverageStore
 from geoserver.style import Style
 from geoserver.support import prepare_upload_bundle
 from geoserver.layergroup import LayerGroup
@@ -140,7 +140,7 @@ class Catalog(object):
           ds_len, cs_len = len(datastores), len(coveragestores)
 
           if ds_len == 1 and cs_len == 0:
-              return DataStore(self, datastores[0])
+              return datastore_from_index(self, workspace, datastores[0])
           elif ds_len == 0 and cs_len == 1:
               return CoverageStore(self, coveragestores[0])
           elif ds_len == 0 and cs_len == 0:
@@ -152,7 +152,7 @@ class Catalog(object):
       if workspace is not None:
           ds_list = self.get_xml(workspace.datastore_url)
           cs_list = self.get_xml(workspace.coveragestore_url)
-          datastores = [DataStore(self, n) for n in ds_list.findall("dataStore")]
+          datastores = [datastore_from_index(self, workspace, n) for n in ds_list.findall("dataStore")]
           coveragestores = [CoverageStore(self, n) for n in cs_list.findall("coverageStore")]
           return datastores + coveragestores
       else:

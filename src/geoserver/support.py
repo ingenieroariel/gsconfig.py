@@ -25,7 +25,51 @@ information from the underlying storage mechanism to reproject to the
 configured projection.
 """
 
+def xml_property(name, path, converter = lambda x: x.text):
+    def get(self):
+        if name in self.dirty:
+            return self.dirty[name]
+        else:
+            if dom is None:
+                self.fetch()
+            node = dom.find(path)
+            return converter(dom.find(path)) if node is not None else None
 
+    def set(self, value):
+        self.dirty[name] = value
+
+    def delete(self):
+        self.dirty[name] = None
+
+    return property(get, set, delete)
+
+def write_bool(name):
+    def write(builder, b):
+        builder.start(name, dict())
+        builder.data("true" if b else "false")
+        builder.end(name)
+    return write
+
+class ResourceInfo(object):
+    def __init__(self):
+        self.dom = None
+        self.dirty = dict()
+
+    def fetch(self):
+        self.dom = self.catalog.get_xml(self.href)
+
+    def clear(self):
+        self.dirty = dict()
+
+    def refresh(self):
+        self.clear()
+        self.fetch()
+
+    def serialize(self, builder):
+        for k, writer in self.writers.values():
+            if k in self.dirty:
+                writer(builder, self.dirty[k])
+                
 class ResourceInfo(object):
   """A base class for all resource types managed by the catalog """
 

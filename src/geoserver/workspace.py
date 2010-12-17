@@ -1,32 +1,34 @@
-from geoserver.support import ResourceInfo, atom_link
+from geoserver.support import atom_link, xml_property, write_bool, ResourceInfo
+import string
+
+def workspace_from_index(catalog, node):
+    name = node.find("name")
+    return Workspace(catalog, name.text)
 
 class Workspace(ResourceInfo): 
     resource_type = "workspace"
 
-    def __init__(self, catalog, node):
+    def __init__(self, catalog, name):
+        assert isinstance(name, basestring)
         self.catalog = catalog
-        self.href = atom_link(node)
+        self.name = name
 
-        self.datastores = []
+    @property
+    def href(self):
+        return "%s/workspaces/%s.xml" % (self.catalog.service_url, self.name)
 
-        self.coveragestores = []
+    @property
+    def coveragestore_url(self):
+        return "%s/workspaces/%s/coveragestores.xml" % (self.catalog.service_url, self.name)
 
-        self.update()
+    @property
+    def datastore_url(self):
+        return "%s/workspaces/%s/datastores.xml" % (self.catalog.service_url, self.name)
 
-    def update(self):
-        ResourceInfo.update(self)
-
-        enabled = self.metadata.find("enabled")
-        datastores = self.metadata.find("dataStores")
-        coveragestores = self.metadata.find("coverageStores")
-
-        if enabled is not None and enabled.text == 'true':
-            enabled = True
-        else:
-            enabled = False
-
-        self.datastore_url = atom_link(datastores)
-        self.coveragestore_url = atom_link(coveragestores)
+    enabled = xml_property("enabled", "enabled", lambda x: string.lower(x) == 'true')
+    writers = dict(
+        enabled = write_bool("enabled")
+    )
 
     def __repr__(self):
         return "%s @ %s" % (self.name, self.href)

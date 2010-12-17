@@ -47,7 +47,7 @@ class DataStore(ResourceInfo):
         if enabled is not None and enabled.text == "true":
             self.enabled = True
 
-        self.workspace = workspace.Workspace(self.catalog, ws) if ws is not None else None
+        self.workspace = workspace.workspace_from_index(self.catalog, ws) if ws is not None else None
         self.connection_parameters = dict((entry.attrib['key'], entry.text) for entry in connection_parameters) 
         self.featuretypelist_url = atom_link(feature_types)
 
@@ -119,7 +119,7 @@ class CoverageStore(ResourceInfo):
             self.enabled = False
 
         self.type = type.text if type is not None else None
-        self.workspace = workspace.Workspace(self.catalog, ws) if ws is not None else None
+        self.workspace = workspace.workspace_from_index(self.catalog, ws) if ws is not None else None
         self.data_url = data_url.text if data_url is not None else None
         self.coveragelist_url = atom_link(coverages)
 

@@ -4,7 +4,7 @@ from geoserver.store import DataStore, CoverageStore
 from geoserver.style import Style
 from geoserver.support import prepare_upload_bundle
 from geoserver.layergroup import LayerGroup
-from geoserver.workspace import Workspace
+from geoserver.workspace import workspace_from_index, Workspace
 from os import unlink
 import httplib2 
 from xml.etree.ElementTree import XML
@@ -354,7 +354,7 @@ class Catalog(object):
 
   def get_workspaces(self):
     description = self.get_xml("%s/workspaces.xml" % self.service_url)
-    return [Workspace(self, node) for node in description.findall("workspace")]
+    return [workspace_from_index(self, node) for node in description.findall("workspace")]
 
   def get_workspace(self, name):
     candidates = filter(lambda x: x.name == name, self.get_workspaces())
@@ -375,12 +375,7 @@ class Catalog(object):
     self.delete(store, purge=True)
 
   def get_default_workspace(self):
-      return Workspace(self, XML("""
-          <workspace>
-              <atom:link xmlns:atom="%s" href="%s/workspaces/default.xml"></atom:link>
-          </workspace>
-      """ % ("http://www.w3.org/2005/Atom", self.service_url)
-      ))
+      return Workspace(self, "default")
 
   def set_default_workspace(self):
     raise NotImplementedError()

@@ -1,5 +1,5 @@
 import geoserver.workspace as ws
-from geoserver.resource import FeatureType, Coverage
+from geoserver.resource import featuretype_from_index, FeatureType, Coverage
 from geoserver.support import ResourceInfo, atom_link
 
 def datastore_from_index(catalog, workspace, node):
@@ -32,8 +32,7 @@ class DataStore(ResourceInfo):
                 )
         xml = self.catalog.get_xml(res_url)
         def ft_from_node(node):
-            name = node.find("name")
-            return FeatureType(self.catalog, node, self)
+            return featuretype_from_index(self.catalog, self, node)
 
         return [ft_from_node(node) for node in xml.findall("featureType")]
 

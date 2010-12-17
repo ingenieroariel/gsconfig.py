@@ -30,7 +30,7 @@ def xml_property(name, path, converter = lambda x: x.text):
         if name in self.dirty:
             return self.dirty[name]
         else:
-            if dom is None:
+            if self.dom is None:
                 self.fetch()
             node = dom.find(path)
             return converter(dom.find(path)) if node is not None else None
@@ -42,6 +42,13 @@ def xml_property(name, path, converter = lambda x: x.text):
         self.dirty[name] = None
 
     return property(get, set, delete)
+
+def write_string(name):
+    def write(builder, value):
+        builder.start(name, dict())
+        builder.data(value)
+        builder.end(name)
+    return write
 
 def write_bool(name):
     def write(builder, b):
@@ -70,39 +77,6 @@ class ResourceInfo(object):
             if k in self.dirty:
                 writer(builder, self.dirty[k])
                 
-class ResourceInfo(object):
-  """A base class for all resource types managed by the catalog """
-
-  resource_type = 'abstractResourceType'
-  """A string identifier for the *type* of resource, such as layer or style"""
-
-  def get_url(self, base):
-      return self.href
-
-  def update(self):
-    self.metadata = self.catalog.get_xml(self.href)
-    if self.metadata is None: 
-        raise Exception("no xml found at " + self.href)
-    name = self.metadata.find('name')
-    self.name = name.text if name is not None else None
-
-  def delete(self):
-    raise NotImplementedError()
-
-  def serialize(self):
-    builder = TreeBuilder()
-    builder.start(self.resource_type, dict())
-    self.encode(builder)
-    builder.end(self.resource_type)
-    return tostring(builder.close())
-
-  def encode(self, builder):
-    """
-    Add appropriate XML nodes to this object.  The builder will be passed in
-    ready to go, with the appropriate top-level node already added.
-    """
-    pass
-
 def prepare_upload_bundle(name, data):
   """GeoServer's REST API uses ZIP archives as containers for file formats such
   as Shapefile and WorldImage which include several 'boxcar' files alongside

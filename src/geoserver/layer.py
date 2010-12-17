@@ -100,7 +100,14 @@ class Layer(ResourceInfo):
     resource = self.metadata.find("resource")
     if resource and "class" in resource.attrib:
         if resource.attrib["class"] == "featureType":
-            self.resource = FeatureType(self.catalog, resource)
+            name = resource.find("name").text
+            href = atom_link(resource)
+            pos = href.rfind("/featuretypes/" + name)
+            href = href[:pos]
+            pos = href.rfind("/")
+            href = href[(pos + 1):]
+            store = self.catalog.get_store(href)
+            self.resource = self.catalog.get_resource(name, store)
         elif resource.attrib["class"] == "coverage":
             self.resource = Coverage(self.catalog, resource)
 

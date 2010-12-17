@@ -9,7 +9,7 @@ class Workspace(ResourceInfo):
     resource_type = "workspace"
 
     def __init__(self, catalog, name):
-        assert isinstance(name, basestring)
+        super(Workspace, self).__init__()
         self.catalog = catalog
         self.name = name
 

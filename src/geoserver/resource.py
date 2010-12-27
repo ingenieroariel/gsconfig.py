@@ -13,20 +13,21 @@ def md_link(node):
     else:
         return (mimetype.text, mdtype.text, content.text)
 
-def featuretype_from_index(catalog, store, node):
+def featuretype_from_index(catalog, workspace, store, node):
     name = node.find("name")
-    return FeatureType(catalog, store, name.text)
+    return FeatureType(catalog, workspace, store, name.text)
 
 class FeatureType(ResourceInfo):
     resource_type = "featureType"
 
-    def __init__(self, catalog, store, name):
+    def __init__(self, catalog, workspace, store, name):
         super(FeatureType, self).__init__()
   
         assert isinstance(store, ResourceInfo)
         assert isinstance(name, basestring)
         
         self.catalog = catalog
+        self.workspace = workspace
         self.store = store
         self.name = name
 

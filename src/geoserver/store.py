@@ -32,7 +32,7 @@ class DataStore(ResourceInfo):
                 )
         xml = self.catalog.get_xml(res_url)
         def ft_from_node(node):
-            return featuretype_from_index(self.catalog, self, node)
+            return featuretype_from_index(self.catalog, self.workspace, self, node)
 
         return [ft_from_node(node) for node in xml.findall("featureType")]
 

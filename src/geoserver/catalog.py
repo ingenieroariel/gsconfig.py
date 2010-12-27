@@ -284,7 +284,7 @@ class Catalog(object):
 
   def get_layers(self, resource=None, style=None):
     description = self.get_xml("%s/layers.xml" % self.service_url)
-    lyrs = [Layer(self, l) for l in description.findall("layer")]
+    lyrs = [Layer(self, l.find("name").text) for l in description.findall("layer")]
     if resource is not None:
       lyrs = [l for l in lyrs if l.resource.href == resource.href]
     # TODO: Filter by style
@@ -305,18 +305,12 @@ class Catalog(object):
     return [LayerGroup(self,group) for group in groups.findall("layerGroup")]
 
   def get_style(self, name):
-    description = self.get_xml("%s/styles.xml" % self.service_url)
-    candidates = [l for l in description.findall("style") if l.find("name").text == name]
-    if len(candidates) == 0:
-      return None
-    elif len(candidates) > 1:
-      raise AmbiguousRequestError()
-    else:
-      return Style(self, candidates[0])
+      dom = self.get_xml("%s/styles/%s.xml" % (self.service_url, name))
+      return Style(self, dom.find("name").text)
 
   def get_styles(self):
     description = self.get_xml("%s/styles.xml" % self.service_url)
-    return [Style(self,s) for s in description.findall("style")]
+    return [Style(self, s.find('name').text) for s in description.findall("style")]
 
   def create_style(self, name, data, overwrite = False):
     if overwrite == False and self.get_style(name) is not None:

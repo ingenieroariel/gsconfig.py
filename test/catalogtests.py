@@ -82,154 +82,154 @@ class CatalogTests(unittest.TestCase):
     self.assertEqual("population", self.cat.get_style("population").name)
 
 
-class ModifyingTests(unittest.TestCase):
-  def setUp(self):
-    self.cat = Catalog("http://localhost:8080/geoserver/rest")
-
-
-  def testFeatureTypeSave(self):
-    # test saving round trip
-    rs = self.cat.get_resource("bugsites")
-    old_abstract = rs.abstract
-    new_abstract = "Not the original abstract"
-
-    # Change abstract on server
-    rs.abstract = new_abstract
-    self.cat.save(rs)
-    rs = self.cat.get_resource("bugsites")
-    self.assertEqual(new_abstract, rs.abstract)
-
-    # Restore abstract
-    rs.abstract = old_abstract
-    self.cat.save(rs)
-    rs = self.cat.get_resource("bugsites")
-    self.assertEqual(old_abstract, rs.abstract)
-
-
-  def testCoverageSave(self):
-    # test saving round trip
-    rs = self.cat.get_resource("Arc_Sample")
-    old_abstract = rs.abstract
-    new_abstract = "Not the original abstract"
-
-    # # Change abstract on server
-    rs.abstract = new_abstract
-    self.cat.save(rs)
-    rs = self.cat.get_resource("Arc_Sample")
-    self.assertEqual(new_abstract, rs.abstract)
-
-    # Restore abstract
-    rs.abstract = old_abstract
-    self.cat.save(rs)
-    rs = self.cat.get_resource("Arc_Sample")
-    self.assertEqual(old_abstract, rs.abstract)
-
-  def testFeatureTypeCreate(self):
-    shapefile_plus_sidecars = shapefile_and_friends("test/data/states")
-    expected = {
-      'shp': 'test/data/states.shp',
-      'shx': 'test/data/states.shx',
-      'dbf': 'test/data/states.dbf',
-      'prj': 'test/data/states.prj'
-    }
-
-    self.assertEqual(len(expected), len(shapefile_plus_sidecars))
-    for k, v in expected.iteritems():
-      self.assertEqual(v, shapefile_plus_sidecars[k])
- 
-    sf = self.cat.get_workspace("sf")
-    ft = self.cat.create_featurestore("states_test", shapefile_plus_sidecars, sf)
-
-    self.assert_(self.cat.get_resource("states_test", workspace=sf) is not None)
-
-    self.assertRaises(
-        ConflictingDataError, 
-        lambda: self.cat.create_featurestore("states_test", shapefile_plus_sidecars, sf)
-    )
-
-    self.assertRaises(
-        UploadError,
-        lambda: self.cat.create_coveragestore("states_raster_test", shapefile_plus_sidecars, sf)
-    )
-
-    bogus_shp = {
-      'shp': 'test/data/Pk50095.tif',
-      'shx': 'test/data/Pk50095.tif',
-      'dbf':  'test/data/Pk50095.tfw',
-      'prj':  'test/data/Pk50095.prj'
-    }
-
-    self.assertRaises(
-        UploadError,
-        lambda: self.cat.create_featurestore("bogus_shp", bogus_shp, sf)
-    )
-
-    lyr = self.cat.get_layer("states_test")
-    self.cat.delete(lyr)
-    self.assert_(self.cat.get_layer("states_test") is None)
-
-
-  def testCoverageCreate(self):
-    tiffdata = {
-      'tiff': 'test/data/Pk50095.tif',
-      'tfw':  'test/data/Pk50095.tfw',
-      'prj':  'test/data/Pk50095.prj'
-    }
-
-    sf = self.cat.get_workspace("sf")
-    ft = self.cat.create_coveragestore("Pk50095", tiffdata, sf)
-
-    self.assert_(self.cat.get_resource("Pk50095", workspace=sf) is not None)
-
-    self.assertRaises(
-        ConflictingDataError, 
-        lambda: self.cat.create_coveragestore("Pk50095", tiffdata, sf)
-    )
-
-    self.assertRaises(
-        UploadError, 
-        lambda: self.cat.create_featurestore("Pk50095_vector", tiffdata, sf)
-    )
-
-    bogus_tiff = {
-        'tiff': 'test/data/states.shp',
-        'tfw': 'test/data/states.shx',
-        'prj': 'test/data/states.prj'
-    }
-
-    self.assertRaises(
-        UploadError,
-        lambda: self.cat.create_coveragestore("states_raster", bogus_tiff)
-    )
-
-  def testLayerSave(self):
-    # test saving round trip
-    lyr = self.cat.get_layer("states")
-    old_attribution = lyr.attribution
-    new_attribution = "Not the original attribution"
-
-    # change attribution on server
-    lyr.attribution = new_attribution
-    self.cat.save(lyr)
-    lyr = self.cat.get_layer("states")
-    self.assertEqual(new_attribution, lyr.attribution)
-
-    # Restore attribution
-    lyr.attribution = old_attribution
-    self.cat.save(lyr)
-    self.assertEqual(old_attribution, lyr.attribution)
-
-  def testWorkspaceDelete(self): 
-    pass 
-
-  def testFeatureTypeDelete(self):
-    pass
-
-  def testCoverageDelete(self):
-    pass
-
-  def testDataStoreDelete(self):
-    pass
+## class ModifyingTests(unittest.TestCase):
+##   def setUp(self):
+##     self.cat = Catalog("http://localhost:8080/geoserver/rest")
+## 
+## 
+##   def testFeatureTypeSave(self):
+##     # test saving round trip
+##     rs = self.cat.get_resource("bugsites")
+##     old_abstract = rs.abstract
+##     new_abstract = "Not the original abstract"
+## 
+##     # Change abstract on server
+##     rs.abstract = new_abstract
+##     self.cat.save(rs)
+##     rs = self.cat.get_resource("bugsites")
+##     self.assertEqual(new_abstract, rs.abstract)
+## 
+##     # Restore abstract
+##     rs.abstract = old_abstract
+##     self.cat.save(rs)
+##     rs = self.cat.get_resource("bugsites")
+##     self.assertEqual(old_abstract, rs.abstract)
+## 
+## 
+##   def testCoverageSave(self):
+##     # test saving round trip
+##     rs = self.cat.get_resource("Arc_Sample")
+##     old_abstract = rs.abstract
+##     new_abstract = "Not the original abstract"
+## 
+##     # # Change abstract on server
+##     rs.abstract = new_abstract
+##     self.cat.save(rs)
+##     rs = self.cat.get_resource("Arc_Sample")
+##     self.assertEqual(new_abstract, rs.abstract)
+## 
+##     # Restore abstract
+##     rs.abstract = old_abstract
+##     self.cat.save(rs)
+##     rs = self.cat.get_resource("Arc_Sample")
+##     self.assertEqual(old_abstract, rs.abstract)
+## 
+##   def testFeatureTypeCreate(self):
+##     shapefile_plus_sidecars = shapefile_and_friends("test/data/states")
+##     expected = {
+##       'shp': 'test/data/states.shp',
+##       'shx': 'test/data/states.shx',
+##       'dbf': 'test/data/states.dbf',
+##       'prj': 'test/data/states.prj'
+##     }
+## 
+##     self.assertEqual(len(expected), len(shapefile_plus_sidecars))
+##     for k, v in expected.iteritems():
+##       self.assertEqual(v, shapefile_plus_sidecars[k])
+##  
+##     sf = self.cat.get_workspace("sf")
+##     ft = self.cat.create_featurestore("states_test", shapefile_plus_sidecars, sf)
+## 
+##     self.assert_(self.cat.get_resource("states_test", workspace=sf) is not None)
+## 
+##     self.assertRaises(
+##         ConflictingDataError, 
+##         lambda: self.cat.create_featurestore("states_test", shapefile_plus_sidecars, sf)
+##     )
+## 
+##     self.assertRaises(
+##         UploadError,
+##         lambda: self.cat.create_coveragestore("states_raster_test", shapefile_plus_sidecars, sf)
+##     )
+## 
+##     bogus_shp = {
+##       'shp': 'test/data/Pk50095.tif',
+##       'shx': 'test/data/Pk50095.tif',
+##       'dbf':  'test/data/Pk50095.tfw',
+##       'prj':  'test/data/Pk50095.prj'
+##     }
+## 
+##     self.assertRaises(
+##         UploadError,
+##         lambda: self.cat.create_featurestore("bogus_shp", bogus_shp, sf)
+##     )
+## 
+##     lyr = self.cat.get_layer("states_test")
+##     self.cat.delete(lyr)
+##     self.assert_(self.cat.get_layer("states_test") is None)
+## 
+## 
+##   def testCoverageCreate(self):
+##     tiffdata = {
+##       'tiff': 'test/data/Pk50095.tif',
+##       'tfw':  'test/data/Pk50095.tfw',
+##       'prj':  'test/data/Pk50095.prj'
+##     }
+## 
+##     sf = self.cat.get_workspace("sf")
+##     ft = self.cat.create_coveragestore("Pk50095", tiffdata, sf)
+## 
+##     self.assert_(self.cat.get_resource("Pk50095", workspace=sf) is not None)
+## 
+##     self.assertRaises(
+##         ConflictingDataError, 
+##         lambda: self.cat.create_coveragestore("Pk50095", tiffdata, sf)
+##     )
+## 
+##     self.assertRaises(
+##         UploadError, 
+##         lambda: self.cat.create_featurestore("Pk50095_vector", tiffdata, sf)
+##     )
+## 
+##     bogus_tiff = {
+##         'tiff': 'test/data/states.shp',
+##         'tfw': 'test/data/states.shx',
+##         'prj': 'test/data/states.prj'
+##     }
+## 
+##     self.assertRaises(
+##         UploadError,
+##         lambda: self.cat.create_coveragestore("states_raster", bogus_tiff)
+##     )
+## 
+##   def testLayerSave(self):
+##     # test saving round trip
+##     lyr = self.cat.get_layer("states")
+##     old_attribution = lyr.attribution
+##     new_attribution = "Not the original attribution"
+## 
+##     # change attribution on server
+##     lyr.attribution = new_attribution
+##     self.cat.save(lyr)
+##     lyr = self.cat.get_layer("states")
+##     self.assertEqual(new_attribution, lyr.attribution)
+## 
+##     # Restore attribution
+##     lyr.attribution = old_attribution
+##     self.cat.save(lyr)
+##     self.assertEqual(old_attribution, lyr.attribution)
+## 
+##   def testWorkspaceDelete(self): 
+##     pass 
+## 
+##   def testFeatureTypeDelete(self):
+##     pass
+## 
+##   def testCoverageDelete(self):
+##     pass
+## 
+##   def testDataStoreDelete(self):
+##     pass
 
 if __name__ == "__main__":
   unittest.main()

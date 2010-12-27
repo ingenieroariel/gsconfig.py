@@ -25,10 +25,10 @@ information from the underlying storage mechanism to reproject to the
 configured projection.
 """
 
-def xml_property(name, path, converter = lambda x: x.text):
+def xml_property(path, converter = lambda x: x.text):
     def get(self):
-        if name in self.dirty:
-            return self.dirty[name]
+        if path in self.dirty:
+            return self.dirty[path]
         else:
             if self.dom is None:
                 self.fetch()
@@ -36,12 +36,36 @@ def xml_property(name, path, converter = lambda x: x.text):
             return converter(self.dom.find(path)) if node is not None else None
 
     def set(self, value):
-        self.dirty[name] = value
+        self.dirty[path] = value
 
     def delete(self):
-        self.dirty[name] = None
+        self.dirty[path] = None
 
     return property(get, set, delete)
+
+def bbox(node):
+    if node is not None: 
+        minx = node.find("minx")
+        maxx = node.find("maxx")
+        miny = node.find("miny")
+        maxy = node.find("maxy")
+        crs  = node.find("crs")
+        crs  = crs.text if crs is not None else None
+
+        if (None not in [minx, maxx, miny, maxy]):
+            return (minx.text, maxx.text, miny.text, maxy.text, crs)
+        else: 
+            return None
+    else:
+        return None
+
+def string_list(node):
+    if node is not None:
+       return [n.text for n in node.findall("string")]
+
+def attribute_list(node):
+    if node is not None:
+       return [n.text for n in node.findall("attribute/name")]
 
 def write_string(name):
     def write(builder, value):
@@ -54,6 +78,23 @@ def write_bool(name):
     def write(builder, b):
         builder.start(name, dict())
         builder.data("true" if b else "false")
+        builder.end(name)
+    return write
+
+def write_bbox(name):
+    def write(builder, b):
+        builder.start(name, dict())
+        bbox_xml(builder, b)
+        builder.end(name)
+    return write
+
+def write_string_list(name):
+    def write(builder, words):
+        builder.start(name, dict())
+        for w in words:
+            builder.start("string", dict())
+            builder.data(w)
+            builder.end("string")
         builder.end(name)
     return write
 

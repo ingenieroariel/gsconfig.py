@@ -1,5 +1,6 @@
 from geoserver.support import ResourceInfo, xml_property, write_string, \
-        atom_link, atom_link_xml, bbox, bbox_xml, \
+        atom_link, atom_link_xml, bbox, bbox_xml, write_bbox, \
+        string_list, write_string_list, attribute_list, write_bool, \
         FORCE_NATIVE, FORCE_DECLARED, REPROJECT
 from xml.etree.ElementTree import tostring
 
@@ -16,6 +17,10 @@ def md_link(node):
 def featuretype_from_index(catalog, workspace, store, node):
     name = node.find("name")
     return FeatureType(catalog, workspace, store, name.text)
+
+def coverage_from_index(catalog, workspace, store, node):
+    name = node.find("name")
+    return Coverage(catalog, workspace, store, name.text)
 
 class FeatureType(ResourceInfo):
     resource_type = "featureType"
@@ -40,12 +45,25 @@ class FeatureType(ResourceInfo):
                 self.name
                 )
 
-    title = xml_property("title", "title")
-    abstract = xml_property("abstract", "abstract")
+    title = xml_property("title")
+    abstract = xml_property("abstract")
+    enabled = xml_property("enabled")
+    native_bbox = xml_property("nativeBoundingBox", bbox)
+    latlon_bbox = xml_property("latLonBoundingBox", bbox)
+    projection = xml_property("srs")
+    projection_policy = xml_property("projectionPolicy")
+    keywords = xml_property("keywords", string_list)
+    attributes = xml_property("attributes", attribute_list)
 
     writers = dict(
                 title = write_string("title"),
-                abstract = write_string("abstract")
+                abstract = write_string("abstract"),
+                enabled = write_bool("enabled"),
+                nativeBbox = write_bbox("nativeBbox"),
+                latlonBbox = write_bbox("latLonBoundingBox"),
+                projection = write_string("srs"),
+                projection_policy = write_string("projectionPolicy"),
+                keywords = write_string_list("keywords")
             )
 
 class CoverageDimension(object):

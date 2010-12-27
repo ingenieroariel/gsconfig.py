@@ -1,5 +1,5 @@
 import geoserver.workspace as ws
-from geoserver.resource import featuretype_from_index, FeatureType, Coverage
+from geoserver.resource import featuretype_from_index, coverage_from_index
 from geoserver.support import ResourceInfo, atom_link
 
 def datastore_from_index(catalog, workspace, node):
@@ -64,6 +64,6 @@ class CoverageStore(ResourceInfo):
 
         def cov_from_node(node):
             name = node.find("name")
-            return Coverage(self.catalog, node, self)
+            return coverage_from_index(self.catalog, self.workspace, self, node)
 
         return [cov_from_node(node) for node in xml.findall("coverage")]

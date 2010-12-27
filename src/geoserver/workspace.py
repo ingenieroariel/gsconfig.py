@@ -25,7 +25,7 @@ class Workspace(ResourceInfo):
     def datastore_url(self):
         return "%s/workspaces/%s/datastores.xml" % (self.catalog.service_url, self.name)
 
-    enabled = xml_property("enabled", "enabled", lambda x: string.lower(x) == 'true')
+    enabled = xml_property("enabled", lambda x: string.lower(x) == 'true')
     writers = dict(
         enabled = write_bool("enabled")
     )

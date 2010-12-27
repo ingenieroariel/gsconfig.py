@@ -32,8 +32,8 @@ def xml_property(name, path, converter = lambda x: x.text):
         else:
             if self.dom is None:
                 self.fetch()
-            node = dom.find(path)
-            return converter(dom.find(path)) if node is not None else None
+            node = self.dom.find(path)
+            return converter(self.dom.find(path)) if node is not None else None
 
     def set(self, value):
         self.dirty[name] = value

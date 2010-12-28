@@ -1,4 +1,4 @@
-from geoserver.support import ResourceInfo, atom_link, atom_link_xml
+from geoserver.support import ResourceInfo, atom_link, atom_link_xml, xml_property
 from geoserver.style import Style
 from geoserver.resource import FeatureType, Coverage 
 
@@ -6,6 +6,14 @@ class Layer(ResourceInfo):
     def __init__(self, catalog, name):
         self.catalog = catalog
         self.name = name
+
+    resource_type = "layer"
+
+    @property
+    def href(self):
+        return "%s/layers/%s.xml" % (self.catalog.service_url, self.name)
+
+    title = xml_property("attribution")
 
 # class Layer(ResourceInfo): 
 #   resource_type = "layer"

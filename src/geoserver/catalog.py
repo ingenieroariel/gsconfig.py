@@ -65,18 +65,20 @@ class Catalog(object):
   def remove(self, object):
     raise NotImplementedError()
 
-  def delete(self,object):
+  def delete(self, obj):
     """
     send a delete request 
     XXX [more here]   
     """
-    url = object.get_url(self.service_url)
+
     headers = {
       "Content-type": "application/xml",
       "Accept": "application/xml"
     } 
-    response = self.http.request(url, "DELETE", headers=headers)
+
+    response = self.http.request(obj.href, "DELETE", headers=headers)
     self._cache.clear()
+
     return response
 
   
@@ -96,20 +98,21 @@ class Catalog(object):
         else:
             raise FailedRequestError("Tried to make a GET request to %s but got a %d status code: \n%s" % (url, response.status, content))
 
-  def save(self, object):
+  def save(self, obj):
     """
     saves an object to the REST service
 
     gets the object's REST location and the XML from the object,
     then POSTS the request.
     """
-    url = object.get_url(self.service_url)
-    message = object.serialize()
+    message = obj.message()
+
     headers = {
       "Content-type": "application/xml",
       "Accept": "application/xml"
     }
-    response = self.http.request(url, "PUT", message, headers)
+
+    response = self.http.request(obj.href, "PUT", message, headers)
     self._cache.clear()
     return response
 
@@ -272,15 +275,13 @@ class Catalog(object):
       resources.extend(self.get_resources(workspace=ws))
     return resources
 
-  def get_layer(self, name=None):
-    description = self.get_xml("%s/layers.xml" % self.service_url)
-    layers = [l for l in description.findall("layer") if l.find("name").text == name]
-    if len(layers) == 0:
-      return None
-    elif len(layers) > 1:
-      raise AmbiguousRequestError("%s does not uniquely identify a layer" % name)
-    else:
-      return Layer(self, layers[0])
+  def get_layer(self, name):
+      try:
+          lyr = Layer(self, name)
+          lyr.fetch()
+          return lyr
+      except FailedRequestError, e:
+          return None
 
   def get_layers(self, resource=None, style=None):
     description = self.get_xml("%s/layers.xml" % self.service_url)

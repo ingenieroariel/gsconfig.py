@@ -111,7 +111,41 @@ def coverage_dimension_xml(builder, dimension):
 
 class Coverage(ResourceInfo):
     def __init__(self, catalog, workspace, store, name):
+        super(Coverage, self).__init__()
         self.catalog = catalog
         self.workspace = workspace
         self.store = store
         self.name = name
+
+    @property
+    def href(self):
+        return "%s/workspaces/%s/coveragestores/%s/coverages/%s.xml" % (
+                self.catalog.service_url,
+                self.workspace.name,
+                self.store.name,
+                self.name
+                )
+
+    resource_type = "coverage"
+
+    title = xml_property("title")
+    abstract = xml_property("abstract")
+    enabled = xml_property("enabled")
+    native_bbox = xml_property("nativeBoundingBox", bbox)
+    latlon_bbox = xml_property("latLonBoundingBox", bbox)
+    projection = xml_property("srs")
+    projection_policy = xml_property("projectionPolicy")
+    keywords = xml_property("keywords", string_list)
+
+    writers = dict(
+                title = write_string("title"),
+                abstract = write_string("abstract"),
+                enabled = write_bool("enabled"),
+                nativeBbox = write_bbox("nativeBbox"),
+                latlonBbox = write_bbox("latLonBoundingBox"),
+                projection = write_string("srs"),
+                projection_policy = write_string("projectionPolicy"),
+                keywords = write_string_list("keywords")
+            )
+
+

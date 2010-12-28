@@ -22,6 +22,7 @@ class CatalogTests(unittest.TestCase):
     self.assertEqual(2, len(self.cat.get_stores(sf)))
     self.assertEqual("states_shapefile", self.cat.get_store("states_shapefile", topp).name)
     self.assertEqual("states_shapefile", self.cat.get_store("states_shapefile").name)
+    self.assertEqual("states_shapefile", self.cat.get_store("states_shapefile").name)
     self.assertEqual("sfdem", self.cat.get_store("sfdem", sf).name)
     self.assertEqual("sfdem", self.cat.get_store("sfdem").name)
 
@@ -229,7 +230,20 @@ class ModifyingTests(unittest.TestCase):
     pass
 
   def testDataStoreDelete(self):
-    pass
+    states = self.cat.get_store('states_shapefile')
+    self.assert_(states.enabled == True)
+    states.enabled = False
+    self.assert_(states.enabled == False)
+    self.cat.save(states)
+
+    states = self.cat.get_store('states_shapefile')
+    self.assert_(states.enabled == False)
+
+    states.enabled = True
+    self.cat.save(states)
+
+    states = self.cat.get_store('states_shapefile')
+    self.assert_(states.enabled == True)
 
 if __name__ == "__main__":
   unittest.main()

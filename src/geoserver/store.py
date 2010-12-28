@@ -1,6 +1,7 @@
 import geoserver.workspace as ws
 from geoserver.resource import featuretype_from_index, coverage_from_index
-from geoserver.support import ResourceInfo, atom_link
+from geoserver.support import ResourceInfo, atom_link, xml_property, \
+        write_bool
 
 def datastore_from_index(catalog, workspace, node):
     name = node.find("name")
@@ -11,6 +12,8 @@ def coveragestore_from_index(catalog, workspace, node):
     return CoverageStore(catalog, workspace, name.text)
 
 class DataStore(ResourceInfo):
+    resource_type = "dataStore"
+
     def __init__(self, catalog, workspace, name):
         super(DataStore, self).__init__()
 
@@ -23,6 +26,10 @@ class DataStore(ResourceInfo):
     @property
     def href(self):
         return "%s/workspaces/%s/datastores/%s.xml" % (self.catalog.service_url, self.workspace.name, self.name)
+
+    enabled = xml_property("enabled", lambda x: x.text == "true")
+
+    writers = dict(enabled=write_bool("enabled"))
 
     def get_resources(self):
         res_url = "%s/workspaces/%s/datastores/%s/featuretypes.xml" % (

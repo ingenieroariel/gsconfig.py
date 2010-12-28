@@ -93,12 +93,14 @@ class ModifyingTests(unittest.TestCase):
     rs = self.cat.get_resource("bugsites")
     old_abstract = rs.abstract
     new_abstract = "Not the original abstract"
+    enabled = rs.enabled
 
     # Change abstract on server
     rs.abstract = new_abstract
     self.cat.save(rs)
     rs = self.cat.get_resource("bugsites")
     self.assertEqual(new_abstract, rs.abstract)
+    self.assertEqual(enabled, rs.enabled)
 
     # Restore abstract
     rs.abstract = old_abstract

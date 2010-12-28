@@ -113,6 +113,11 @@ class ResourceInfo(object):
         self.fetch()
 
     def serialize(self, builder):
+        # GeoServer will disable the resource if we omit the <enabled> tag,
+        # so force it into the dirty dict before writing
+        if hasattr(self, "enabled"):
+            self.enabled = self.enabled
+
         for k, writer in self.writers.items():
             if k in self.dirty:
                 writer(builder, self.dirty[k])

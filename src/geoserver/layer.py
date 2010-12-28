@@ -1,5 +1,5 @@
 from geoserver.support import ResourceInfo, atom_link, atom_link_xml, \
-        xml_property, write_string
+        xml_property, write_bool, write_string
 from geoserver.style import Style
 from geoserver.resource import FeatureType, Coverage 
 
@@ -54,6 +54,7 @@ class Layer(ResourceInfo):
         return "%s/layers/%s.xml" % (self.catalog.service_url, self.name)
 
     attribution_object = xml_property("attribution", _read_attribution)
+    enabled = xml_property("enabled", lambda x: x.text == "true")
     
     def _get_attr_text(self):
         return self.attribution_object.title
@@ -68,4 +69,7 @@ class Layer(ResourceInfo):
 
     attribution = property(_get_attr_text, _set_attr_text)
 
-    writers = dict(attribution = _write_attribution)
+    writers = dict(
+            attribution = _write_attribution,
+            enabled = write_bool("enabled")
+            )

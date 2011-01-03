@@ -53,8 +53,17 @@ class Layer(ResourceInfo):
     def href(self):
         return "%s/layers/%s.xml" % (self.catalog.service_url, self.name)
 
+    @property
+    def resource(self):
+        if self.dom is None: 
+            self.fetch()
+        name = self.dom.find("resource/name").text
+        return self.catalog.get_resource(name)
+
+
     attribution_object = xml_property("attribution", _read_attribution)
     enabled = xml_property("enabled", lambda x: x.text == "true")
+    default_style = xml_property("defaultStyle/name", _read_style)
     
     def _get_attr_text(self):
         return self.attribution_object.title

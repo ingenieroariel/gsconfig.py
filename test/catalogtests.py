@@ -1,5 +1,6 @@
 import unittest
 from geoserver.catalog import Catalog, ConflictingDataError, UploadError
+from geoserver.support import ResourceInfo
 from geoserver.util import shapefile_and_friends
 
 class CatalogTests(unittest.TestCase):
@@ -75,7 +76,12 @@ class CatalogTests(unittest.TestCase):
     message = "Actual layer list did not match expected! (Extras: %s) (Missing: %s)" % (extras, missing)
     self.assert_(len(expected ^ actual) == 0, message)
 
-    self.assert_("states", self.cat.get_layer("states").name)
+    states = self.cat.get_layer("states")
+
+    self.assert_("states", states.name)
+    self.assert_(isinstance(states.resource, ResourceInfo))
+
+    self.assertEqual(states.default_style, "popshade")
 
 
   def testStyles(self):

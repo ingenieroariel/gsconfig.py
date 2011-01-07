@@ -41,6 +41,14 @@ def _write_attribution(builder, attr):
         builder.end("logoHeight")
     builder.end("attribution")
 
+def _write_default_style(builder, name):
+    builder.start("defaultStyle", dict())
+    if name is not None:
+        builder.start("name", dict())
+        builder.data(name)
+        builder.end("name")
+    builder.end("defaultStyle")
+
 class Layer(ResourceInfo):
     def __init__(self, catalog, name):
         super(Layer, self).__init__()
@@ -60,10 +68,23 @@ class Layer(ResourceInfo):
         name = self.dom.find("resource/name").text
         return self.catalog.get_resource(name)
 
+    def _get_default_style(self):
+        if 'default_style' in self.dirty:
+            return self.dirty['default_style']
+        if self.dom is None:
+            self.fetch()
+        name = self.dom.find("defaultStyle/name").text
+        return self.catalog.get_style(name)
+
+    def _set_default_style(self, style):
+        if isinstance(style, Style):
+            style = style.name
+        self.dirty["default_style"] = style
+
+    default_style = property(_get_default_style, _set_default_style)
 
     attribution_object = xml_property("attribution", _read_attribution)
     enabled = xml_property("enabled", lambda x: x.text == "true")
-    default_style = xml_property("defaultStyle/name", _read_style)
     
     def _get_attr_text(self):
         return self.attribution_object.title
@@ -80,5 +101,6 @@ class Layer(ResourceInfo):
 
     writers = dict(
             attribution = _write_attribution,
-            enabled = write_bool("enabled")
+            enabled = write_bool("enabled"),
+            default_style = _write_default_style
             )

@@ -186,15 +186,15 @@ class Catalog(object):
       "Content-type": "application/zip",
       "Accept": "application/xml"
     }
-    zip = prepare_upload_bundle(name, data)
-    message = open(zip).read()
+    archive = prepare_upload_bundle(name, data)
+    message = open(archive)
     try:
       headers, response = self.http.request(ds_url, "PUT", message, headers)
       self._cache.clear()
       if headers.status != 201:
           raise UploadError(response)
     finally:
-      unlink(zip)
+      unlink(archive)
 
   def create_coveragestore(self, name, data, workspace=None, overwrite=False):
     if not overwrite:
@@ -306,8 +306,11 @@ class Catalog(object):
     return [LayerGroup(self,group) for group in groups.findall("layerGroup")]
 
   def get_style(self, name):
-      dom = self.get_xml("%s/styles/%s.xml" % (self.service_url, name))
-      return Style(self, dom.find("name").text)
+      try:
+          dom = self.get_xml("%s/styles/%s.xml" % (self.service_url, name))
+          return Style(self, dom.find("name").text)
+      except FailedRequestError, e:
+          return None
 
   def get_styles(self):
     description = self.get_xml("%s/styles.xml" % self.service_url)

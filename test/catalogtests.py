@@ -81,8 +81,7 @@ class CatalogTests(unittest.TestCase):
     self.assert_("states", states.name)
     self.assert_(isinstance(states.resource, ResourceInfo))
 
-    self.assertEqual(states.default_style, "popshade")
-
+    self.assertEqual(states.default_style.name, "population")
 
   def testStyles(self):
     self.assertEqual(20, len(self.cat.get_styles()))

@@ -81,7 +81,19 @@ class Layer(ResourceInfo):
             style = style.name
         self.dirty["default_style"] = style
 
+    def _get_alternate_styles(self):
+        if "alternate_styles" in self.dirty:
+            return self.dirty["alternate_styles"]
+        if self.dom is None:
+            self.fetch()
+        styles = self.dom.findall("styles/style/name")
+        return (Style(self.catalog, s.text) for s in styles)
+
+    def _set_alternate_styles(self, styles):
+        self.dirty["alternate_styles"] = styles
+
     default_style = property(_get_default_style, _set_default_style)
+    styles = property(_get_alternate_styles, _set_alternate_styles)
 
     attribution_object = xml_property("attribution", _read_attribution)
     enabled = xml_property("enabled", lambda x: x.text == "true")

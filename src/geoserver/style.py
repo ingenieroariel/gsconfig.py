@@ -7,6 +7,21 @@ class Style(ResourceInfo):
         assert isinstance(name, basestring)
         self.name = name
 
+    @property
+    def href(self):
+        return "%s/styles/%s.xml" % (self.catalog.service_url, self.name)
+
+    def body_href(self):
+        style_container = re.sub(r"/rest$", "/styles", self.catalog.service_url)
+        self.fetch()
+        return "%s/%s" % (style_container, self.filename)
+
+    @property
+    def filename(self):
+        if self.dom is None:
+            self.fetch()
+        return self.dom.find("filename").text
+
 # class Style(ResourceInfo):
 #   def __init__(self,catalog, node):
 #     self.catalog = catalog

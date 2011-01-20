@@ -64,12 +64,16 @@ class Catalog(object):
   def remove(self, object):
     raise NotImplementedError()
 
-  def delete(self,object):
+  def delete(self, object, purge=False):
     """
     send a delete request 
     XXX [more here]   
     """
     url = object.get_url(self.service_url)
+
+    if purge:
+        url = url + "?purge=true"
+
     headers = {
       "Content-type": "application/xml",
       "Accept": "application/xml"
@@ -330,8 +334,9 @@ class Catalog(object):
       style_url = "%s/styles/%s.sld" % (self.service_url, name)
       headers, response = self.http.request(style_url, "PUT", data, headers)
     else:
-      style_url = "%s/styles" % (self.service_url)
+      style_url = "%s/styles?name=%s" % (self.service_url, name)
       headers, response = self.http.request(style_url, "POST", data, headers)
+      print headers, response
 
     self._cache.clear()
     if headers.status < 200 or headers.status > 299: raise UploadError(response)

@@ -219,6 +219,28 @@ class ModifyingTests(unittest.TestCase):
     self.cat.save(lyr)
     self.assertEqual(old_attribution, lyr.attribution)
 
+  def testStyles(self):
+      # upload new style, verify existence
+      self.cat.create_style("fred", open("test/fred.sld").read())
+      fred = self.cat.get_style("fred")
+      self.assert_(fred is not None)
+      self.assertEqual("Fred", fred.sld_title)
+
+      # replace style, verify changes
+      self.cat.create_style("fred", open("test/ted.sld").read(), overwrite=True)
+      fred = self.cat.get_style("fred")
+      self.assert_(fred is not None)
+      self.assertEqual("Ted", fred.sld_title)
+
+      # delete style, verify non-existence
+      self.cat.delete(fred, purge=True)
+      self.assert_(self.cat.get_style("fred") is None)
+
+      # attempt creating new style
+      self.cat.create_style("fred", open("test/fred.sld").read())
+      fred = self.cat.get_style("fred")
+      self.assertEqual("Fred", fred.sld_title)
+
   def testWorkspaceDelete(self): 
     pass 
 

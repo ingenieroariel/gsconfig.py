@@ -351,11 +351,16 @@ class Catalog(object):
     raise NotImplementedError()
 
   def create_workspace(self, name, uri):
-    xml = ""
-    "<namespace>"
-    "  <prefix>{name}</prefix>"
-    "  <uri>{uri}</prefix>"
-    "</namespace>".format({"name": name, "uri": uri})
+    xml = ("<namespace>"
+          "<prefix>{name}</prefix>"
+          "<uri>{uri}</uri>"
+          "</namespace>").format(name=name, uri=uri)
+    headers = { "Content-Type": "application/xml" }
+    workspace_url = self.service_url + "/namespaces/"
+
+    headers, response = self.http.request(workspace_url, "POST", xml, headers)
+    assert 200 <= headers.status < 300, "Tried to create workspace but got " + str(headers.status) + ": " + response
+    return self.get_workspace(name)
 
   def get_workspaces(self):
     description = self.get_xml("%s/workspaces.xml" % self.service_url)

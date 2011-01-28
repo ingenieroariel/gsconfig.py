@@ -241,8 +241,17 @@ class ModifyingTests(unittest.TestCase):
       fred = self.cat.get_style("fred")
       self.assertEqual("Fred", fred.sld_title)
 
+  def testWorkspaceCreate(self):
+      self.cat.create_workspace("acme", "http://example.com/acme")
+      ws = self.cat.get_workspace("acme")
+      self.assertEqual("acme", ws.name)
+
   def testWorkspaceDelete(self): 
-    pass 
+      self.cat.create_workspace("foo", "http://example.com/foo")
+      ws = self.cat.get_workspace("foo")
+      self.cat.delete(ws)
+      ws = self.cat.get_workspace("foo")
+      self.assert_(ws is None)
 
   def testFeatureTypeDelete(self):
     pass

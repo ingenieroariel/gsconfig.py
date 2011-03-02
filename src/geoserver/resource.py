@@ -382,10 +382,6 @@ class Coverage(ResourceInfo):
     request_srs = doc.find("requestSRS/string")
     response_srs = doc.find("responseSRS/string")
 
-    if title is None:
-        print self.href
-        print tostring(doc)
-
     self.title = title.text if title is not None else None
     self.abstract = abstract.text if abstract is not None else None
     self.keywords = [(kw.text or None) for kw in doc.findall("keywords/string")]

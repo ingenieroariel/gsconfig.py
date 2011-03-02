@@ -336,7 +336,6 @@ class Catalog(object):
     else:
       style_url = "%s/styles?name=%s" % (self.service_url, name)
       headers, response = self.http.request(style_url, "POST", data, headers)
-      print headers, response
 
     self._cache.clear()
     if headers.status < 200 or headers.status > 299: raise UploadError(response)

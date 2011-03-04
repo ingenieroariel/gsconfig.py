@@ -9,6 +9,7 @@ from os import unlink
 import httplib2 
 from xml.etree.ElementTree import XML
 from urlparse import urlparse
+import logging
 
 class UploadError(Exception):
     pass
@@ -165,6 +166,45 @@ class Catalog(object):
               a = self.get_stores(ws)
               stores.extend(a)
           return stores
+
+  def create_pg_feature(self, storename, name, data, workspace=None, overwrite=False):
+
+    if not overwrite:
+        try:
+            layer = self.get_layer(name)
+            if layer:
+                msg = "There is already a layer named " + name
+                if workspace:
+                    msg += " in " + str(workspace)
+                raise ConflictingDataError(msg)
+        except FailedRequestError, e:
+            # we don't really expect that every layer name will be taken
+            pass
+
+    if workspace is None:
+      workspace = self.get_default_workspace()
+
+    store = self.get_store(storename, workspace)
+
+
+    ds_url = "%s/workspaces/%s/datastores/%s/file.shp" % (self.service_url, workspace.name, storename)
+    # PUT /workspaces/<ws>/datastores/<ds>/file.shp
+    headers = {
+      "Content-type": "application/zip",
+      "Accept": "application/xml"
+    }
+
+    logging.debug("Upload GS URL is [%s]", ds_url)
+    zip = prepare_upload_bundle(name, data)
+    message = open(zip)
+    try:
+      logging.debug("Attempt GS import")
+      headers, response = self.http.request(ds_url, "PUT", message, headers)
+      self._cache.clear()
+      if headers.status != 201:
+          raise UploadError(response)
+    finally:
+        unlink(zip)
 
   def create_featurestore(self, name, data, workspace=None, overwrite=False):
     if not overwrite:

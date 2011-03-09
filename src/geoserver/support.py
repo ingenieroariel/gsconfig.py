@@ -1,7 +1,9 @@
+import logging
 from xml.etree.ElementTree import TreeBuilder, tostring
 from tempfile import mkstemp
 from zipfile import ZipFile
-
+import zipfile
+from django.core.files.uploadedfile import UploadedFile
 
 
 FORCE_DECLARED = "FORCE_DECLARED"
@@ -37,7 +39,7 @@ class ResourceInfo(object):
 
   def update(self):
     self.metadata = self.catalog.get_xml(self.href)
-    if self.metadata is None: 
+    if self.metadata is None:
         raise Exception("no xml found at " + self.href)
     name = self.metadata.find('name')
     self.name = name.text if name is not None else None
@@ -70,14 +72,39 @@ def prepare_upload_bundle(name, data):
   archive when it's done."""
 
   handle, f = mkstemp() # we don't use the file handle directly. should we?
-  zip = ZipFile(f, 'w')
-  for ext, stream in data.iteritems():
-    fname = "%s.%s" % (name, ext)
-    if (isinstance(stream, basestring)):
-      zip.write(stream, fname)
-    else:
-      zip.writestr(fname, stream.read())
-  zip.close()
+
+  if isinstance(data, UploadedFile):
+    oldhandle, oldf = mkstemp()
+    foo = open(oldf, "wb")
+    for chunk in data.chunks():
+        foo.write(chunk)
+    foo.close()
+
+    oldzip = ZipFile(oldf)
+
+    noo = open(f, "wb")
+    for chunk in data.chunks():
+        noo.write(chunk)
+    noo.close()
+    newzip = ZipFile(f, "w")
+
+    zipFiles = oldzip.namelist()
+    for file in zipFiles:
+        ext = file[-4:]
+        logging.debug("Write [%s]:[%s]", name + ext, file)
+        newzip.writestr(name + ext, oldzip.read(file))
+    return f
+
+
+  else:
+    zip = ZipFile(f, 'w')
+    for ext, stream in data.iteritems():
+        fname = "%s.%s" % (name, ext)
+        if (isinstance(stream, basestring)):
+            zip.write(stream, fname)
+        else:
+            zip.writestr(fname, stream.read())
+    zip.close()
   return f
 
 def atom_link(node):
@@ -97,7 +124,7 @@ def atom_link_xml(builder, href):
     builder.end("atom:link")
 
 def bbox(node):
-    if node is not None: 
+    if node is not None:
         minx = node.find("minx")
         maxx = node.find("maxx")
         miny = node.find("miny")
@@ -107,7 +134,7 @@ def bbox(node):
 
         if (None not in [minx, maxx, miny, maxy]):
             return (minx.text, maxx.text, miny.text, maxy.text, crs)
-        else: 
+        else:
             return None
     else:
         return None

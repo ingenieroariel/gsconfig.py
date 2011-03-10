@@ -1,3 +1,4 @@
+from array import array
 import logging
 from xml.etree.ElementTree import TreeBuilder, tostring
 from tempfile import mkstemp
@@ -74,25 +75,33 @@ def prepare_upload_bundle(name, data):
   handle, f = mkstemp() # we don't use the file handle directly. should we?
 
   if isinstance(data, UploadedFile):
+    """This must be a zipped shapefile."""
+
+    """Create ZipFile object from uploaded data """
     oldhandle, oldf = mkstemp()
     foo = open(oldf, "wb")
     for chunk in data.chunks():
         foo.write(chunk)
     foo.close()
-
     oldzip = ZipFile(oldf)
 
+    """New zip file"""
     noo = open(f, "wb")
     for chunk in data.chunks():
         noo.write(chunk)
     noo.close()
     newzip = ZipFile(f, "w")
 
+    """Get the necessary files from the uploaded zip, and add them to the new zip
+    with the desired layer name"""
     zipFiles = oldzip.namelist()
+    files = ['.shp', '.prj', '.shx', '.dbf']
     for file in zipFiles:
-        ext = file[-4:]
-        logging.debug("Write [%s]:[%s]", name + ext, file)
-        newzip.writestr(name + ext, oldzip.read(file))
+        ext = file[-4:].lower()
+        if ext in files:
+            files.remove(ext) #OS X creates hidden subdirectory with garbage files having same extensions; ignore.
+            logging.debug("Write [%s]:[%s]", name + ext, file)
+            newzip.writestr(name + ext, oldzip.read(file))
     return f
 
 

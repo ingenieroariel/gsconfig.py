@@ -97,7 +97,6 @@ class Catalog(object):
         response, content = self.http.request(url)
         if response.status == 200:
             self._cache[url] = (datetime.now(), content)
-            logging.info(url)
             return XML(content)
         else:
             raise FailedRequestError("Tried to make a GET request to %s but got a %d status code: \n%s" % (url, response.status, content))

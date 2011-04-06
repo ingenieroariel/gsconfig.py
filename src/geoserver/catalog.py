@@ -187,7 +187,7 @@ class Catalog(object):
       "Accept": "application/xml"
     }
     zip = prepare_upload_bundle(name, data)
-    message = open(zip).read()
+    message = open(zip)
     try:
       headers, response = self.http.request(ds_url, "PUT", message, headers)
       self._cache.clear()
@@ -220,14 +220,14 @@ class Catalog(object):
 
     if isinstance(data, dict):
       zip = prepare_upload_bundle(name, data)
-      message = open(zip).read()
+      message = open(zip)
       if "tfw" in data:
         headers['Content-type'] = 'application/zip'
         ext = "worldimage"
     elif isinstance(data, basestring):
-      message = open(data).read()
+      message = open(data)
     else:
-      message = data.read()
+      message = data
 
     cs_url = "%s/workspaces/%s/coveragestores/%s/file.%s" % (self.service_url, workspace.name, name, ext)
     try:
@@ -336,7 +336,6 @@ class Catalog(object):
     else:
       style_url = "%s/styles?name=%s" % (self.service_url, name)
       headers, response = self.http.request(style_url, "POST", data, headers)
-      print headers, response
 
     self._cache.clear()
     if headers.status < 200 or headers.status > 299: raise UploadError(response)

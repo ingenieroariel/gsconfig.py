@@ -6,6 +6,7 @@ from zipfile import ZipFile
 import zipfile
 from django.core.files.uploadedfile import UploadedFile
 
+logger = logging.getLogger("gsconfig.support")
 
 FORCE_DECLARED = "FORCE_DECLARED"
 """
@@ -100,7 +101,7 @@ def prepare_upload_bundle(name, data):
         ext = file[-4:].lower()
         if ext in files:
             files.remove(ext) #OS X creates hidden subdirectory with garbage files having same extensions; ignore.
-            logging.debug("Write [%s]:[%s]", name + ext, file)
+            logger.debug("Write [%s].[%s]", name, ext)
             newzip.writestr(name + ext, oldzip.read(file))
     return f
 

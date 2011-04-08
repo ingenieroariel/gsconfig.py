@@ -12,6 +12,8 @@ import httplib2
 from xml.etree.ElementTree import XML
 from urlparse import urlparse
 
+logger = logging.getLogger("gsconfig.catalog")
+
 class UploadError(Exception):
     pass
 
@@ -86,6 +88,7 @@ class Catalog(object):
 
 
   def get_xml(self, url):
+    logger.debug("URL: %s", url)
     cached_response = self._cache.get(url)
 
     def is_valid(cached_response):
@@ -119,8 +122,7 @@ class Catalog(object):
     return response
 
   def get_store(self, name, workspace=None):
-      logging.debug("Search for store [%s]", name )
-      stores = [s for s in self.get_stores(workspace) if s.name == name]
+      #stores = [s for s in self.get_stores(workspace) if s.name == name]
       if workspace is None:
           store = None
           for ws in self.get_workspaces():
@@ -140,7 +142,7 @@ class Catalog(object):
               raise FailedRequestError("No store found named: " + name)
           return store
       else: # workspace is not None
-          logging.debug("datastore url is [%s]", workspace.datastore_url )
+          logger.debug("datastore url is [%s]", workspace.datastore_url )
           ds_list = self.get_xml(workspace.datastore_url)
           cs_list = self.get_xml(workspace.coveragestore_url)
           datastores = [n for n in ds_list.findall("dataStore") if n.find("name").text == name]
@@ -201,11 +203,11 @@ class Catalog(object):
       "Accept": "application/xml"
     }
 
-    logging.debug("Upload GS URL is [%s]", ds_url)
+    logger.debug("Upload GS URL is [%s]", ds_url)
     zip = prepare_upload_bundle(name, data)
     message = open(zip)
     try:
-      logging.debug("Attempt GS import")
+      logger.debug("Attempt GS import")
       headers, response = self.http.request(ds_url, "PUT", message, headers)
       self._cache.clear()
       if headers.status != 201:

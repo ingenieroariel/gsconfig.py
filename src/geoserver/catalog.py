@@ -173,7 +173,7 @@ class Catalog(object):
           return stores
 
 
-  def create_pg_feature(self, storename, name, data, workspace=None, overwrite=False, charset=None):
+  def create_pg_feature(self, storeXML, name, data, workspace=None, overwrite=False, charset=None):
 
     if not overwrite:
         try:
@@ -190,13 +190,28 @@ class Catalog(object):
     if workspace is None:
       workspace = self.get_default_workspace()
 
-    store = self.get_store(storename, workspace)
+    message = storeXML
 
+    store_url = "%s/workspaces/%s/datastores" % (self.service_url, workspace.name)
+    headers = {
+      "Content-type": "text/xml",
+      "Accept": "application/xml"
+    }
+    try:
+      logger.debug("Attempt GS import")
+      headers, response = self.http.request(store_url, "POST", message, headers)
+      self._cache.clear()
+      if headers.status != 201:
+          logger.error(headers.status)
+          raise UploadError(response)
+    except Exception, ex:
+        logger.error(str(ex))
+        raise UploadError(ex)
 
     if charset:
-        ds_url = "%s/workspaces/%s/datastores/%s/file.shp?charset=%s" % (self.service_url, workspace.name, storename, charset)
+        ds_url = "%s/workspaces/%s/datastores/%s/file.shp?charset=%s" % (self.service_url, workspace.name, name, charset)
     else:
-        ds_url = "%s/workspaces/%s/datastores/%s/file.shp" % (self.service_url, workspace.name, storename)
+        ds_url = "%s/workspaces/%s/datastores/%s/file.shp" % (self.service_url, workspace.name, name)
     # PUT /workspaces/<ws>/datastores/<ds>/file.shp
     headers = {
       "Content-type": "application/zip",

@@ -192,27 +192,34 @@ class Catalog(object):
 
     message = storeXML
 
-    store_url = "%s/workspaces/%s/datastores" % (self.service_url, workspace.name)
-    headers = {
-      "Content-type": "text/xml",
-      "Accept": "application/xml"
-    }
-    try:
-      logger.debug("Attempt GS import")
-      headers, response = self.http.request(store_url, "POST", message, headers)
-      self._cache.clear()
-      if headers.status != 201:
-          logger.error(headers.status)
-          raise UploadError(response)
-    except Exception, ex:
-        logger.error(str(ex))
-        raise UploadError(ex)
+    #Create new PostGIS datastore (only if this is a new layer)
+    if not overwrite:
+        store_url = "%s/workspaces/%s/datastores" % (self.service_url, workspace.name)
+        headers = {
+        "Content-type": "text/xml",
+        "Accept": "application/xml"
+        }
+        try:
+            logger.debug("Attempt GS PostGIS store creation")
+            headers, response = self.http.request(store_url, "POST", message, headers)
+            self._cache.clear()
+            if headers.status != 201:
+                logger.error('Store creation failed: %s', headers.status)
+                raise UploadError(response)
+        except Exception, ex:
+            logger.error('Store creation failed: %s', str(ex))
+            raise UploadError(ex)
 
+    #Create/update layer
     if charset:
         ds_url = "%s/workspaces/%s/datastores/%s/file.shp?charset=%s" % (self.service_url, workspace.name, name, charset)
     else:
         ds_url = "%s/workspaces/%s/datastores/%s/file.shp" % (self.service_url, workspace.name, name)
-    # PUT /workspaces/<ws>/datastores/<ds>/file.shp
+
+    if overwrite:
+        ds_url = ds_url + ("&" if charset else "?") + "update=overwrite"
+
+
     headers = {
       "Content-type": "application/zip",
       "Accept": "application/xml"

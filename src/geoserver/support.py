@@ -1,10 +1,8 @@
-from array import array
 import logging
 from xml.etree.ElementTree import TreeBuilder, tostring
 from tempfile import mkstemp
 from zipfile import ZipFile
-import zipfile
-from django.core.files.uploadedfile import UploadedFile
+
 
 logger = logging.getLogger("gsconfig.support")
 
@@ -64,7 +62,7 @@ class ResourceInfo(object):
     pass
 
 def prepare_upload_bundle(name, data):
-  """GeoServer's REST API uses ZIP archives as containers for file formats such
+    """GeoServer's REST API uses ZIP archives as containers for file formats such
   as Shapefile and WorldImage which include several 'boxcar' files alongside
   the main data.  In such archives, GeoServer assumes that all of the relevant
   files will have the same base name and appropriate extensions, and live in
@@ -72,41 +70,7 @@ def prepare_upload_bundle(name, data):
   these expectations, based on a basename, and a dict of extensions to paths or
   file-like objects. The client code is responsible for deleting the zip
   archive when it's done."""
-
-  handle, f = mkstemp() # we don't use the file handle directly. should we?
-
-  if isinstance(data, UploadedFile):
-    """This must be a zipped shapefile."""
-
-    """Create ZipFile object from uploaded data """
-    oldhandle, oldf = mkstemp()
-    foo = open(oldf, "wb")
-    for chunk in data.chunks():
-        foo.write(chunk)
-    foo.close()
-    oldzip = ZipFile(oldf)
-
-    """New zip file"""
-    noo = open(f, "wb")
-    for chunk in data.chunks():
-        noo.write(chunk)
-    noo.close()
-    newzip = ZipFile(f, "w")
-
-    """Get the necessary files from the uploaded zip, and add them to the new zip
-    with the desired layer name"""
-    zipFiles = oldzip.namelist()
-    files = ['.shp', '.prj', '.shx', '.dbf']
-    for file in zipFiles:
-        ext = file[-4:].lower()
-        if ext in files:
-            files.remove(ext) #OS X creates hidden subdirectory with garbage files having same extensions; ignore.
-            logger.debug("Write [%s].[%s]", name, ext)
-            newzip.writestr(name + ext, oldzip.read(file))
-    return f
-
-
-  else:
+    handle, f = mkstemp() # we don't use the file handle directly. should we?
     zip = ZipFile(f, 'w')
     for ext, stream in data.iteritems():
         fname = "%s.%s" % (name, ext)
@@ -115,7 +79,7 @@ def prepare_upload_bundle(name, data):
         else:
             zip.writestr(fname, stream.read())
     zip.close()
-  return f
+    return f
 
 def atom_link(node):
     if 'href' in node.attrib:

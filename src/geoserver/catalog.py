@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 import logging
-from django.core.files.uploadedfile import InMemoryUploadedFile
 from geoserver.layer import Layer
 from geoserver.store import DataStore, CoverageStore
 from geoserver.style import Style
@@ -9,6 +8,7 @@ from geoserver.layergroup import LayerGroup
 from geoserver.workspace import Workspace
 from os import unlink
 import httplib2
+from zipfile import is_zipfile
 from xml.etree.ElementTree import XML
 from urlparse import urlparse
 
@@ -226,7 +226,12 @@ class Catalog(object):
     }
 
     logger.debug("Upload GS URL is [%s]", ds_url)
-    zip = prepare_upload_bundle(name, data)
+    if  isinstance(data,dict):
+        logger.debug('Data is NOT a zipfile')
+        zip = prepare_upload_bundle(name, data)
+    else:
+        logger.debug('Data is a zipfile')
+        zip = data
     message = open(zip)
     try:
       logger.debug("Attempt GS import")
@@ -262,7 +267,12 @@ class Catalog(object):
       "Content-type": "application/zip",
       "Accept": "application/xml"
     }
-    zip = prepare_upload_bundle(name, data)
+    if  isinstance(data,dict):
+        logger.debug('Data is NOT a zipfile')
+        zip = prepare_upload_bundle(name, data)
+    else:
+        logger.debug('Data is a zipfile')
+        zip = data
     message = open(zip)
     try:
       headers, response = self.http.request(ds_url, "PUT", message, headers)

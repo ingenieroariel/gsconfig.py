@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import logging
 from geoserver.layer import Layer
-from geoserver.store import DataStore, CoverageStore
+from geoserver.store import DataStore, CoverageStore, UnsavedDataStore
 from geoserver.style import Style
 from geoserver.support import prepare_upload_bundle
 from geoserver.layergroup import LayerGroup
@@ -172,6 +172,10 @@ class Catalog(object):
               stores.extend(a)
           return stores
 
+  def create_datastore(self, name, workspace = None):
+      if workspace is None:
+          workspace = self.get_default_workspace()
+      return UnsavedDataStore(self, name, workspace)
 
   def create_pg_feature(self, storeXML, name, data, workspace=None, overwrite=False, charset=None):
 

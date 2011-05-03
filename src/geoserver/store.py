@@ -81,6 +81,13 @@ class DataStore(ResourceInfo):
         wsname = self.workspace.name if self.workspace is not None else None
         return "DataStore[%s:%s]" % (wsname, self.name)
 
+class UnsavedDataStore(DataStore):
+    def __init__(self, catalog, name, workspace):
+        self.name = name
+        self.workspace = workspace
+        self.href = catalog.service_url + "/workspaces/" + workspace.name + "/datastores/" + name + ".xml"
+        self.connection_parameters = dict()
+        self.enabled = True
 
 class CoverageStore(ResourceInfo):
     """

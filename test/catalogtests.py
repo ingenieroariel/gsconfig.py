@@ -111,6 +111,13 @@ class ModifyingTests(unittest.TestCase):
     rs = self.cat.get_resource("bugsites")
     self.assertEqual(old_abstract, rs.abstract)
 
+  def testDataStoreCreate(self):
+    ds = self.cat.create_datastore("gsconfig")
+    ds.connection_parameters.update(
+            host="localhost", port="5432", database="db", user="postgres",
+            passwd="password", dbtype="postgis")
+    self.cat.save(ds)
+
   def testDataStoreModify(self):
     ds = self.cat.get_store("sf")
     self.assertFalse("foo" in ds.connection_parameters)

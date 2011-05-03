@@ -112,7 +112,7 @@ class ModifyingTests(unittest.TestCase):
     self.assertEqual(old_abstract, rs.abstract)
 
   def testDataStoreCreate(self):
-    ds = self.cat.create_datastore("gsconfig")
+    ds = self.cat.create_datastore("vector_gsconfig")
     ds.connection_parameters.update(
             host="localhost", port="5432", database="db", user="postgres",
             passwd="password", dbtype="postgis")
@@ -128,6 +128,11 @@ class ModifyingTests(unittest.TestCase):
     self.assertTrue("foo" in ds.connection_parameters)
     self.assertEqual("bar", ds.connection_parameters["foo"])
     self.assertEqual(orig_ws, ds.workspace.name)
+
+  def testCoverageStoreCreate(self):
+    ds = self.cat.create_coveragestore2("coverage_gsconfig")
+    ds.data_url = "file:data/mytiff.tiff"
+    self.cat.save(ds)
 
   def testCoverageStoreModify(self):
     cs = self.cat.get_store("sfdem")

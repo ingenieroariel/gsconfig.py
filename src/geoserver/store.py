@@ -165,6 +165,11 @@ class CoverageStore(ResourceInfo):
             builder.data("false")
         builder.end("enabled")
 
+        builder.start("url", dict())
+        builder.data(self.data_url)
+        builder.end("url")
+
+
     def get_resources(self):
         doc = self.catalog.get_xml(self.coveragelist_url)
         return [Coverage(self.catalog, n, self) for n in doc.findall("coverage")]
@@ -172,3 +177,12 @@ class CoverageStore(ResourceInfo):
     def __repr__(self):
         wsname = self.workspace.name if self.workspace is not None else None
         return "CoverageStore[%s:%s]" % (wsname, self.name)
+
+class UnsavedCoverageStore(CoverageStore):
+    def __init__(self, catalog, name, workspace):
+        self.name = name
+        self.workspace = workspace
+        self.href = catalog.service_url + "/workspaces/" + workspace.name + "/coveragestores/" + name + ".xml"
+        self.type = "GeoTIFF"
+        self.enabled = True
+        self.data_url = "file:data/"

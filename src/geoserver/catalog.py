@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import logging
 from geoserver.layer import Layer
-from geoserver.store import DataStore, CoverageStore, UnsavedDataStore
+from geoserver.store import DataStore, CoverageStore, UnsavedDataStore, UnsavedCoverageStore
 from geoserver.style import Style
 from geoserver.support import prepare_upload_bundle
 from geoserver.layergroup import LayerGroup
@@ -176,6 +176,15 @@ class Catalog(object):
       if workspace is None:
           workspace = self.get_default_workspace()
       return UnsavedDataStore(self, name, workspace)
+
+  def create_coveragestore2(self, name, workspace = None):
+      """
+      Hm we already named the method that creates a coverage *resource*
+      create_coveragestore... time for an API break?
+      """
+      if workspace is None:
+          workspace = self.get_default_workspace()
+      return UnsavedCoverageStore(self, name, workspace)
 
   def create_pg_feature(self, storeXML, name, data, workspace=None, overwrite=False, charset=None):
 

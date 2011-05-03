@@ -98,7 +98,7 @@ class Layer(ResourceInfo):
     self.styles = [Style(self.catalog, s) for s in styles]
 
     resource = self.metadata.find("resource")
-    if resource and "class" in resource.attrib:
+    if resource is not None and "class" in resource.attrib:
         if resource.attrib["class"] == "featureType":
             self.resource = FeatureType(self.catalog, resource)
         elif resource.attrib["class"] == "coverage":

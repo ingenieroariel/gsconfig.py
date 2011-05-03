@@ -142,6 +142,22 @@ class CoverageStore(ResourceInfo):
         self.data_url = data_url.text if data_url is not None else None
         self.coveragelist_url = atom_link(coverages)
 
+    def encode(self, builder):
+        builder.start("name", dict())
+        builder.data(self.name)
+        builder.end("name")
+
+        builder.start("type", dict())
+        builder.data(self.type)
+        builder.end("type")
+
+        builder.start("enabled", dict())
+        if self.enabled:
+            builder.data("true")
+        else:
+            builder.data("false")
+        builder.end("enabled")
+
     def get_resources(self):
         doc = self.catalog.get_xml(self.coveragelist_url)
         return [Coverage(self.catalog, n, self) for n in doc.findall("coverage")]

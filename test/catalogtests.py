@@ -115,10 +115,25 @@ class ModifyingTests(unittest.TestCase):
     ds = self.cat.get_store("sf")
     self.assertFalse("foo" in ds.connection_parameters)
     ds.connection_parameters["foo"] = "bar"
+    orig_ws = ds.workspace.name
     self.cat.save(ds)
     ds = self.cat.get_store("sf")
     self.assertTrue("foo" in ds.connection_parameters)
     self.assertEqual("bar", ds.connection_parameters["foo"])
+    self.assertEqual(orig_ws, ds.workspace.name)
+
+  def testCoverageStoreModify(self):
+    cs = self.cat.get_store("sfdem")
+    self.assertEqual("GeoTIFF", cs.type)
+    cs.type = "WorldImage"
+    self.cat.save(cs)
+    cs = self.cat.get_store("sfdem")
+    self.assertEqual("WorldImage", cs.type)
+
+    # not sure about order of test runs here, but it might cause problems
+    # for other tests if this layer is misconfigured
+    cs.type = "GeoTIFF"
+    self.cat.save(cs) 
 
   def testCoverageSave(self):
     # test saving round trip

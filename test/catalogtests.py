@@ -99,6 +99,12 @@ class ModifyingTests(unittest.TestCase):
     rs = self.cat.get_resource("bugsites")
     self.assertEqual(new_abstract, rs.abstract)
 
+    # Change keywords on server
+    rs.keywords = ["bugsites", "gsconfig"]
+    self.cat.save(rs)
+    rs = self.cat.get_resource("bugsites")
+    self.assertEqual(["bugsites", "gsconfig"], rs.keywords)
+
     # Restore abstract
     rs.abstract = old_abstract
     self.cat.save(rs)

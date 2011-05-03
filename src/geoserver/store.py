@@ -51,6 +51,25 @@ class DataStore(ResourceInfo):
         self.connection_parameters = dict((entry.attrib['key'], entry.text) for entry in connection_parameters) 
         self.featuretypelist_url = atom_link(feature_types)
 
+    def encode(self, builder):
+        builder.start("name", dict())
+        builder.data(self.name)
+        builder.end("name")
+
+        builder.start("enabled", dict())
+        if self.enabled:
+            builder.data("true")
+        else:
+            builder.data("false")
+        builder.end("enabled")
+
+        builder.start("connectionParameters", dict())
+        for k, v in self.connection_parameters.iteritems():
+            builder.start("entry", dict(key=k))
+            builder.data(v)
+            builder.end("entry")
+        builder.end("connectionParameters")
+
     def delete(self): 
         raise NotImplementedError()
 

@@ -203,12 +203,12 @@ class FeatureType(ResourceInfo):
     # builder.end("attributes")
     
 
-    """
-    Removes a featureType from the GeoServer Catalog.  This is a dumb
-    method, ie it does not remove any dependent resources in GeoServer. 
-    To remove all dependent resource call delete_all
-    """
-    self.catalog.delete(self)
+#    """
+#    Removes a featureType from the GeoServer Catalog.  This is a dumb
+#    method, ie it does not remove any dependent resources in GeoServer. 
+#    To remove all dependent resource call delete_all
+#    """
+#    self.catalog.delete(self)
 
 
   def delete(self):

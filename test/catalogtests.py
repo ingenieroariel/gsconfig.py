@@ -111,6 +111,14 @@ class ModifyingTests(unittest.TestCase):
     rs = self.cat.get_resource("bugsites")
     self.assertEqual(old_abstract, rs.abstract)
 
+  def testDataStoreModify(self):
+    ds = self.cat.get_store("sf")
+    self.assertFalse("foo" in ds.connection_parameters)
+    ds.connection_parameters["foo"] = "bar"
+    self.cat.save(ds)
+    ds = self.cat.get_store("sf")
+    self.assertTrue("foo" in ds.connection_parameters)
+    self.assertEqual("bar", ds.connection_parameters["foo"])
 
   def testCoverageSave(self):
     # test saving round trip

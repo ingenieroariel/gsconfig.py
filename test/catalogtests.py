@@ -129,6 +129,20 @@ class ModifyingTests(unittest.TestCase):
     self.assertEqual("bar", ds.connection_parameters["foo"])
     self.assertEqual(orig_ws, ds.workspace.name)
 
+  def testDataStoreCreateAndThenAlsoImportData(self):
+    ds = self.cat.create_datastore("gsconfig_import_test")
+    ds.connection_parameters.update(
+            host="localhost", port="5432", database="db", user="postgres",
+            passwd="password", dbtype="postgis")
+    self.cat.save(ds)
+    ds = self.cat.get_store("gsconfig_import_test")
+    self.cat.add_data_to_store(ds, "import", {
+      'shp': 'test/data/states.shp',
+      'shx': 'test/data/states.shx',
+      'dbf': 'test/data/states.dbf',
+      'prj': 'test/data/states.prj'
+    })
+
   def testCoverageStoreCreate(self):
     ds = self.cat.create_coveragestore2("coverage_gsconfig")
     ds.data_url = "file:data/mytiff.tiff"

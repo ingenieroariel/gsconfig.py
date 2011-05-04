@@ -31,6 +31,9 @@ configured projection.
 class ResourceInfo(object):
   """A base class for all resource types managed by the catalog """
 
+  save_method = "PUT"
+  """The HTTP method to use when saving this object"""
+
   resource_type = 'abstractResourceType'
   """A string identifier for the *type* of resource, such as layer or style"""
 

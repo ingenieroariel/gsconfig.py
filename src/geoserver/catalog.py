@@ -11,6 +11,7 @@ import httplib2
 from zipfile import is_zipfile
 from xml.etree.ElementTree import XML
 from urlparse import urlparse
+from urllib import urlencode
 
 logger = logging.getLogger("gsconfig.catalog")
 
@@ -117,7 +118,7 @@ class Catalog(object):
       "Content-type": "application/xml",
       "Accept": "application/xml"
     }
-    response = self.http.request(url, "PUT", message, headers)
+    response = self.http.request(url, object.save_method, message, headers)
     self._cache.clear()
     return response
 
@@ -185,6 +186,36 @@ class Catalog(object):
       if workspace is None:
           workspace = self.get_default_workspace()
       return UnsavedCoverageStore(self, name, workspace)
+
+  def add_data_to_store(self, store, name, data, overwrite = False, charset = None):
+      if isinstance(data, dict):
+          bundle = prepare_upload_bundle(name, data)
+      else:
+          bundle = data
+
+      params = dict()
+      if overwrite:
+          params["overwrite"] = True
+      if charset is not None:
+          params["charset"] = charset
+
+      if len(params):
+          params = "?" + urlencode(params)
+      else:
+          params = ""
+
+      message = open(bundle)
+      headers = { 'Content-Type': 'application/zip', 'Accept': 'application/xml' }
+      url = "%s/workspaces/%s/datastores/%s/file.shp%s" % (
+              self.service_url, store.workspace.name, store.name, params)
+
+      try:
+          headers, response = self.http.request(url, "PUT", message, headers)
+          self._cache.clear()
+          if headers.status != 201:
+              raise UploadError(response)
+      finally:
+          unlink(bundle)
 
   def create_pg_feature(self, storeXML, name, data, workspace=None, overwrite=False, charset=None):
 

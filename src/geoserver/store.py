@@ -51,6 +51,25 @@ class DataStore(ResourceInfo):
         self.connection_parameters = dict((entry.attrib['key'], entry.text) for entry in connection_parameters) 
         self.featuretypelist_url = atom_link(feature_types)
 
+    def encode(self, builder):
+        builder.start("name", dict())
+        builder.data(self.name)
+        builder.end("name")
+
+        builder.start("enabled", dict())
+        if self.enabled:
+            builder.data("true")
+        else:
+            builder.data("false")
+        builder.end("enabled")
+
+        builder.start("connectionParameters", dict())
+        for k, v in self.connection_parameters.iteritems():
+            builder.start("entry", dict(key=k))
+            builder.data(v)
+            builder.end("entry")
+        builder.end("connectionParameters")
+
     def delete(self): 
         raise NotImplementedError()
 
@@ -62,6 +81,15 @@ class DataStore(ResourceInfo):
         wsname = self.workspace.name if self.workspace is not None else None
         return "DataStore[%s:%s]" % (wsname, self.name)
 
+class UnsavedDataStore(DataStore):
+    save_method = "POST"
+
+    def __init__(self, catalog, name, workspace):
+        self.name = name
+        self.workspace = workspace
+        self.href = catalog.service_url + "/workspaces/" + workspace.name + "/datastores/"
+        self.connection_parameters = dict()
+        self.enabled = True
 
 class CoverageStore(ResourceInfo):
     """
@@ -123,6 +151,27 @@ class CoverageStore(ResourceInfo):
         self.data_url = data_url.text if data_url is not None else None
         self.coveragelist_url = atom_link(coverages)
 
+    def encode(self, builder):
+        builder.start("name", dict())
+        builder.data(self.name)
+        builder.end("name")
+
+        builder.start("type", dict())
+        builder.data(self.type)
+        builder.end("type")
+
+        builder.start("enabled", dict())
+        if self.enabled:
+            builder.data("true")
+        else:
+            builder.data("false")
+        builder.end("enabled")
+
+        builder.start("url", dict())
+        builder.data(self.data_url)
+        builder.end("url")
+
+
     def get_resources(self):
         doc = self.catalog.get_xml(self.coveragelist_url)
         return [Coverage(self.catalog, n, self) for n in doc.findall("coverage")]
@@ -130,3 +179,14 @@ class CoverageStore(ResourceInfo):
     def __repr__(self):
         wsname = self.workspace.name if self.workspace is not None else None
         return "CoverageStore[%s:%s]" % (wsname, self.name)
+
+class UnsavedCoverageStore(CoverageStore):
+    save_method = "POST"
+
+    def __init__(self, catalog, name, workspace):
+        self.name = name
+        self.workspace = workspace
+        self.href = catalog.service_url + "/workspaces/" + workspace.name + "/coveragestores/"
+        self.type = "GeoTIFF"
+        self.enabled = True
+        self.data_url = "file:data/"

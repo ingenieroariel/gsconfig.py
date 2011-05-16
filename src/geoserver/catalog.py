@@ -75,7 +75,7 @@ class Catalog(object):
     send a delete request
     XXX [more here]
     """
-    url = object.get_url(self.service_url)
+    url = object.href
 
     if purge:
         url = url + "?purge=true"
@@ -114,14 +114,14 @@ class Catalog(object):
     gets the object's REST location and the XML from the object,
     then POSTS the request.
     """
-    url = object.get_url(self.service_url)
+    url = obj.href
     message = obj.message()
 
     headers = {
       "Content-type": "application/xml",
       "Accept": "application/xml"
     }
-    response = self.http.request(url, object.save_method, message, headers)
+    response = self.http.request(url, obj.save_method, message, headers)
     self._cache.clear()
     return response
 

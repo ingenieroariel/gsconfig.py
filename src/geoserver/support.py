@@ -69,6 +69,10 @@ def attribute_list(node):
     if node is not None:
        return [n.text for n in node.findall("attribute/name")]
 
+def key_value_pairs(node):
+    if node is not None:
+        return dict((entry.attrib['key'], entry.text) for entry in connection_parameters)
+
 def write_string(name):
     def write(builder, value):
         builder.start(name, dict())
@@ -98,6 +102,16 @@ def write_string_list(name):
             builder.start("string", dict())
             builder.data(w)
             builder.end("string")
+        builder.end(name)
+    return write
+
+def write_dict(name):
+    def write(builder, pairs):
+        builder.start(name, dict())
+        for k, v in pairs.iteritems():
+            builder.start("entry", dict(key=k))
+            builder.data(v)
+            builder.end("entry")
         builder.end(name)
     return write
 

@@ -43,6 +43,16 @@ class DataStore(ResourceInfo):
 
         return [ft_from_node(node) for node in xml.findall("featureType")]
 
+class UnsavedDataStore(DataStore):
+    save_method = "POST"
+
+    def __init__(self, catalog, name, workspace):
+        self.name = name
+        self.workspace = workspace
+        self.href = catalog.service_url + "/workspaces/" + workspace.name + "/datastores/"
+        self.connection_parameters = dict()
+        self.enabled = True
+
 class CoverageStore(ResourceInfo):
     resource_type = 'coverageStore'
 
@@ -74,3 +84,14 @@ class CoverageStore(ResourceInfo):
             return coverage_from_index(self.catalog, self.workspace, self, node)
 
         return [cov_from_node(node) for node in xml.findall("coverage")]
+
+class UnsavedCoverageStore(CoverageStore):
+    save_method = "POST"
+
+    def __init__(self, catalog, name, workspace):
+        self.name = name
+        self.workspace = workspace
+        self.href = catalog.service_url + "/workspaces/" + workspace.name + "/coveragestores/"
+        self.type = "GeoTIFF"
+        self.enabled = True
+        self.data_url = "file:data/"

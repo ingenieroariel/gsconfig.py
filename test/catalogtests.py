@@ -107,12 +107,69 @@ class ModifyingTests(unittest.TestCase):
     self.assertEqual(new_abstract, rs.abstract)
     self.assertEqual(enabled, rs.enabled)
 
+    # Change keywords on server
+    rs.keywords = ["bugsites", "gsconfig"]
+    enabled = rs.enabled
+    self.cat.save(rs)
+    rs = self.cat.get_resource("bugsites")
+    self.assertEqual(["bugsites", "gsconfig"], rs.keywords)
+    self.assertEqual(enabled, rs.enabled)
+
     # Restore abstract
     rs.abstract = old_abstract
     self.cat.save(rs)
     rs = self.cat.get_resource("bugsites")
     self.assertEqual(old_abstract, rs.abstract)
 
+  def testDataStoreCreate(self):
+    ds = self.cat.create_datastore("vector_gsconfig")
+    ds.connection_parameters.update(
+            host="localhost", port="5432", database="db", user="postgres",
+            passwd="password", dbtype="postgis")
+    self.cat.save(ds)
+
+  def testDataStoreModify(self):
+    ds = self.cat.get_store("sf")
+    self.assertFalse("foo" in ds.connection_parameters)
+    ds.connection_parameters["foo"] = "bar"
+    orig_ws = ds.workspace.name
+    self.cat.save(ds)
+    ds = self.cat.get_store("sf")
+    self.assertTrue("foo" in ds.connection_parameters)
+    self.assertEqual("bar", ds.connection_parameters["foo"])
+    self.assertEqual(orig_ws, ds.workspace.name)
+
+  def testDataStoreCreateAndThenAlsoImportData(self):
+    ds = self.cat.create_datastore("gsconfig_import_test")
+    ds.connection_parameters.update(
+            host="localhost", port="5432", database="db", user="postgres",
+            passwd="password", dbtype="postgis")
+    self.cat.save(ds)
+    ds = self.cat.get_store("gsconfig_import_test")
+    self.cat.add_data_to_store(ds, "import", {
+      'shp': 'test/data/states.shp',
+      'shx': 'test/data/states.shx',
+      'dbf': 'test/data/states.dbf',
+      'prj': 'test/data/states.prj'
+    })
+
+  def testCoverageStoreCreate(self):
+    ds = self.cat.create_coveragestore2("coverage_gsconfig")
+    ds.data_url = "file:data/mytiff.tiff"
+    self.cat.save(ds)
+
+  def testCoverageStoreModify(self):
+    cs = self.cat.get_store("sfdem")
+    self.assertEqual("GeoTIFF", cs.type)
+    cs.type = "WorldImage"
+    self.cat.save(cs)
+    cs = self.cat.get_store("sfdem")
+    self.assertEqual("WorldImage", cs.type)
+
+    # not sure about order of test runs here, but it might cause problems
+    # for other tests if this layer is misconfigured
+    cs.type = "GeoTIFF"
+    self.cat.save(cs) 
 
   def testCoverageSave(self):
     # test saving round trip
@@ -228,8 +285,39 @@ class ModifyingTests(unittest.TestCase):
     self.cat.save(lyr)
     self.assertEqual(old_attribution, lyr.attribution)
 
+  def testStyles(self):
+      # upload new style, verify existence
+      self.cat.create_style("fred", open("test/fred.sld").read())
+      fred = self.cat.get_style("fred")
+      self.assert_(fred is not None)
+      self.assertEqual("Fred", fred.sld_title)
+
+      # replace style, verify changes
+      self.cat.create_style("fred", open("test/ted.sld").read(), overwrite=True)
+      fred = self.cat.get_style("fred")
+      self.assert_(fred is not None)
+      self.assertEqual("Ted", fred.sld_title)
+
+      # delete style, verify non-existence
+      self.cat.delete(fred, purge=True)
+      self.assert_(self.cat.get_style("fred") is None)
+
+      # attempt creating new style
+      self.cat.create_style("fred", open("test/fred.sld").read())
+      fred = self.cat.get_style("fred")
+      self.assertEqual("Fred", fred.sld_title)
+
+  def testWorkspaceCreate(self):
+      self.cat.create_workspace("acme", "http://example.com/acme")
+      ws = self.cat.get_workspace("acme")
+      self.assertEqual("acme", ws.name)
+
   def testWorkspaceDelete(self): 
-    pass 
+      self.cat.create_workspace("foo", "http://example.com/foo")
+      ws = self.cat.get_workspace("foo")
+      self.cat.delete(ws)
+      ws = self.cat.get_workspace("foo")
+      self.assert_(ws is None)
 
   def testFeatureTypeDelete(self):
     pass

@@ -1,15 +1,20 @@
 from datetime import datetime, timedelta
+import logging
 from geoserver.layer import Layer
 from geoserver.store import coveragestore_from_index, datastore_from_index, \
-    DataStore, CoverageStore
+    DataStore, CoverageStore, UnsavedDataStore, UnsavedCoverageStore
 from geoserver.style import Style
 from geoserver.support import prepare_upload_bundle
 from geoserver.layergroup import LayerGroup
 from geoserver.workspace import workspace_from_index, Workspace
 from os import unlink
-import httplib2 
+import httplib2
+from zipfile import is_zipfile
 from xml.etree.ElementTree import XML
 from urlparse import urlparse
+from urllib import urlencode
+
+logger = logging.getLogger("gsconfig.catalog")
 
 class UploadError(Exception):
     pass
@@ -18,7 +23,7 @@ class ConflictingDataError(Exception):
     pass
 
 class AmbiguousRequestError(Exception):
-    pass 
+    pass
 
 class FailedRequestError(Exception):
     pass
@@ -33,7 +38,7 @@ class Catalog(object):
   - Layers, which combine styles with resources to create a visible map layer
   - LayerGroups, which alias one or more layers for convenience
   - Workspaces, which provide logical grouping of Stores
-  - Maps, which provide a set of OWS services with a subset of the server's 
+  - Maps, which provide a set of OWS services with a subset of the server's
     Layers
   - Namespaces, which provide unique identifiers for resources
   """
@@ -49,12 +54,12 @@ class Catalog(object):
     netloc = urlparse(url).netloc
     self.http.authorizations.append(
         httplib2.BasicAuthentication(
-            (username, password), 
+            (username, password),
             netloc,
             url,
             {},
             None,
-            None, 
+            None,
             self.http
             ))
     self._cache = dict()
@@ -65,24 +70,28 @@ class Catalog(object):
   def remove(self, object):
     raise NotImplementedError()
 
-  def delete(self, obj):
+  def delete(self, object, purge=False):
     """
-    send a delete request 
-    XXX [more here]   
+    send a delete request
+    XXX [more here]
     """
+    url = object.get_url(self.service_url)
+
+    if purge:
+        url = url + "?purge=true"
 
     headers = {
       "Content-type": "application/xml",
       "Accept": "application/xml"
-    } 
-
-    response = self.http.request(obj.href, "DELETE", headers=headers)
+    }
+    response = self.http.request(url, "DELETE", headers=headers)
     self._cache.clear()
 
     return response
 
-  
+
   def get_xml(self, url):
+    logger.debug("URL: %s", url)
     cached_response = self._cache.get(url)
 
     def is_valid(cached_response):
@@ -105,19 +114,19 @@ class Catalog(object):
     gets the object's REST location and the XML from the object,
     then POSTS the request.
     """
+    url = object.get_url(self.service_url)
     message = obj.message()
 
     headers = {
       "Content-type": "application/xml",
       "Accept": "application/xml"
     }
-
-    response = self.http.request(obj.href, "PUT", message, headers)
+    response = self.http.request(url, object.save_method, message, headers)
     self._cache.clear()
     return response
 
   def get_store(self, name, workspace=None):
-      stores = [s for s in self.get_stores(workspace) if s.name == name]
+      #stores = [s for s in self.get_stores(workspace) if s.name == name]
       if workspace is None:
           store = None
           for ws in self.get_workspaces():
@@ -137,6 +146,7 @@ class Catalog(object):
               raise FailedRequestError("No store found named: " + name)
           return store
       else: # workspace is not None
+          logger.debug("datastore url is [%s]", workspace.datastore_url )
           ds_list = self.get_xml(workspace.datastore_url)
           cs_list = self.get_xml(workspace.coveragestore_url)
           datastores = [n for n in ds_list.findall("dataStore") if n.find("name").text == name]
@@ -166,12 +176,56 @@ class Catalog(object):
               stores.extend(a)
           return stores
 
-  def create_featurestore(self, name, data, workspace=None, overwrite=False):
+  def create_datastore(self, name, workspace = None):
+      if workspace is None:
+          workspace = self.get_default_workspace()
+      return UnsavedDataStore(self, name, workspace)
+
+  def create_coveragestore2(self, name, workspace = None):
+      """
+      Hm we already named the method that creates a coverage *resource*
+      create_coveragestore... time for an API break?
+      """
+      if workspace is None:
+          workspace = self.get_default_workspace()
+      return UnsavedCoverageStore(self, name, workspace)
+
+  def add_data_to_store(self, store, name, data, overwrite = False, charset = None):
+      if isinstance(data, dict):
+          bundle = prepare_upload_bundle(name, data)
+      else:
+          bundle = data
+
+      params = dict()
+      if overwrite:
+          params["overwrite"] = True
+      if charset is not None:
+          params["charset"] = charset
+
+      if len(params):
+          params = "?" + urlencode(params)
+      else:
+          params = ""
+
+      message = open(bundle)
+      headers = { 'Content-Type': 'application/zip', 'Accept': 'application/xml' }
+      url = "%s/workspaces/%s/datastores/%s/file.shp%s" % (
+              self.service_url, store.workspace.name, store.name, params)
+
+      try:
+          headers, response = self.http.request(url, "PUT", message, headers)
+          self._cache.clear()
+          if headers.status != 201:
+              raise UploadError(response)
+      finally:
+          unlink(bundle)
+
+  def create_featurestore(self, name, data, workspace=None, overwrite=False, charset=None):
     if not overwrite:
         try:
             store = self.get_store(name, workspace)
             msg = "There is already a store named " + name
-            if workspace: 
+            if workspace:
                 msg += " in " + str(workspace)
             raise ConflictingDataError(msg)
         except FailedRequestError, e:
@@ -180,14 +234,23 @@ class Catalog(object):
 
     if workspace is None:
       workspace = self.get_default_workspace()
-    ds_url = "%s/workspaces/%s/datastores/%s/file.shp" % (self.service_url, workspace.name, name)
+    if charset:
+        ds_url = "%s/workspaces/%s/datastores/%s/file.shp?charset=%s" % (self.service_url, workspace.name, name, charset)
+    else:
+        ds_url = "%s/workspaces/%s/datastores/%s/file.shp" % (self.service_url, workspace.name, name)
+
     # PUT /workspaces/<ws>/datastores/<ds>/file.shp
     headers = {
       "Content-type": "application/zip",
       "Accept": "application/xml"
     }
-    archive = prepare_upload_bundle(name, data)
-    message = open(archive)
+    if  isinstance(data,dict):
+        logger.debug('Data is NOT a zipfile')
+        archive = prepare_upload_bundle(name, data)
+    else:
+        logger.debug('Data is a zipfile')
+        archive = data
+    message = open(zip)
     try:
       headers, response = self.http.request(ds_url, "PUT", message, headers)
       self._cache.clear()
@@ -201,7 +264,7 @@ class Catalog(object):
         try:
             store = self.get_store(name, workspace)
             msg = "There is already a store named " + name
-            if workspace: 
+            if workspace:
                 msg += " in " + str(workspace)
             raise ConflictingDataError(msg)
         except FailedRequestError, e:
@@ -220,14 +283,14 @@ class Catalog(object):
 
     if isinstance(data, dict):
       zip = prepare_upload_bundle(name, data)
-      message = open(zip).read()
+      message = open(zip)
       if "tfw" in data:
         headers['Content-type'] = 'application/zip'
         ext = "worldimage"
     elif isinstance(data, basestring):
-      message = open(data).read()
+      message = open(data)
     else:
-      message = data.read()
+      message = data
 
     cs_url = "%s/workspaces/%s/coveragestores/%s/file.%s" % (self.service_url, workspace.name, name, ext)
     try:
@@ -298,7 +361,7 @@ class Catalog(object):
     raise NotImplementedError()
 
   def get_layergroup(self, id=None, name=None):
-    group = self.get_xml("%s/layergroups/%s.xml" % (self.service_url, name))    
+    group = self.get_xml("%s/layergroups/%s.xml" % (self.service_url, name))
     return LayerGroup(self, group.find("name").text)
 
   def get_layergroups(self):
@@ -329,12 +392,12 @@ class Catalog(object):
       style_url = "%s/styles/%s.sld" % (self.service_url, name)
       headers, response = self.http.request(style_url, "PUT", data, headers)
     else:
-      style_url = "%s/styles" % (self.service_url)
+      style_url = "%s/styles?name=%s" % (self.service_url, name)
       headers, response = self.http.request(style_url, "POST", data, headers)
 
     self._cache.clear()
     if headers.status < 200 or headers.status > 299: raise UploadError(response)
-  
+
   def get_namespace(self, id=None, prefix=None, uri=None):
     raise NotImplementedError()
 
@@ -345,11 +408,16 @@ class Catalog(object):
     raise NotImplementedError()
 
   def create_workspace(self, name, uri):
-    xml = ""
-    "<namespace>"
-    "  <prefix>{name}</prefix>"
-    "  <uri>{uri}</prefix>"
-    "</namespace>".format({"name": name, "uri": uri})
+    xml = ("<namespace>"
+          "<prefix>{name}</prefix>"
+          "<uri>{uri}</uri>"
+          "</namespace>").format(name=name, uri=uri)
+    headers = { "Content-Type": "application/xml" }
+    workspace_url = self.service_url + "/namespaces/"
+
+    headers, response = self.http.request(workspace_url, "POST", xml, headers)
+    assert 200 <= headers.status < 300, "Tried to create workspace but got " + str(headers.status) + ": " + response
+    return self.get_workspace(name)
 
   def get_workspaces(self):
     description = self.get_xml("%s/workspaces.xml" % self.service_url)

@@ -131,6 +131,7 @@ class ModifyingTests(unittest.TestCase):
   def testDataStoreModify(self):
     ds = self.cat.get_store("sf")
     self.assertFalse("foo" in ds.connection_parameters)
+    ds.connection_parameters = ds.connection_parameters
     ds.connection_parameters["foo"] = "bar"
     orig_ws = ds.workspace.name
     self.cat.save(ds)

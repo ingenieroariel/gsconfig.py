@@ -13,6 +13,7 @@ def coveragestore_from_index(catalog, workspace, node):
 
 class DataStore(ResourceInfo):
     resource_type = "dataStore"
+    save_method = "PUT"
 
     def __init__(self, catalog, workspace, name):
         super(DataStore, self).__init__()
@@ -33,7 +34,7 @@ class DataStore(ResourceInfo):
 
     writers = dict(enabled = write_bool("enabled"),
                    name = write_string("name"),
-                   connection_parameters = write_dict("connectionParameters"))
+                   connectionParameters = write_dict("connectionParameters"))
 
 
     def get_resources(self):
@@ -52,14 +53,17 @@ class UnsavedDataStore(DataStore):
     save_method = "POST"
 
     def __init__(self, catalog, name, workspace):
-        self.name = name
-        self.workspace = workspace
-        self.href = catalog.service_url + "/workspaces/" + workspace.name + "/datastores/"
-        self.connection_parameters = dict()
-        self.enabled = True
+        super(UnsavedDataStore, self).__init__(catalog, workspace, name)
+        self.dirty.update(dict(
+            name=name, enabled=True, connectionParameters=dict()))
+
+    @property
+    def href(self):
+        return "%s/workspaces/%s/datastores?name=%s" % (self.catalog.service_url, self.workspace.name, self.name)
 
 class CoverageStore(ResourceInfo):
     resource_type = 'coverageStore'
+    save_method = "PUT"
 
     def __init__(self, catalog, workspace, name):
         super(CoverageStore, self).__init__()
@@ -106,9 +110,10 @@ class UnsavedCoverageStore(CoverageStore):
     save_method = "POST"
 
     def __init__(self, catalog, name, workspace):
-        self.name = name
-        self.workspace = workspace
-        self.href = catalog.service_url + "/workspaces/" + workspace.name + "/coveragestores/"
-        self.type = "GeoTIFF"
-        self.enabled = True
-        self.data_url = "file:data/"
+        super(UnsavedCoverageStore, self).__init__(catalog, workspace, name)
+        self.dirty.update(name=name, enabled = True, type="GeoTIFF",
+                url = "file:data/")
+
+    @property
+    def href(self):
+        return "%s/workspaces/%s/coveragestores?name=%s" % (self.catalog.service_url, self.workspace.name, self.name)

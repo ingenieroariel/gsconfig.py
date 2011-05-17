@@ -24,7 +24,7 @@ def coverage_from_index(catalog, workspace, store, node):
 
 class FeatureType(ResourceInfo):
     resource_type = "featureType"
-    save_method = "POST"
+    save_method = "PUT"
 
     def __init__(self, catalog, workspace, store, name):
         super(FeatureType, self).__init__()
@@ -128,7 +128,7 @@ class Coverage(ResourceInfo):
                 )
 
     resource_type = "coverage"
-    save_method = "POST"
+    save_method = "PUT"
 
     title = xml_property("title")
     abstract = xml_property("abstract")
@@ -149,5 +149,3 @@ class Coverage(ResourceInfo):
                 projection_policy = write_string("projectionPolicy"),
                 keywords = write_string_list("keywords")
             )
-
-

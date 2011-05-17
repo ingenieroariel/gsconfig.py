@@ -56,7 +56,7 @@ class Layer(ResourceInfo):
         self.name = name
 
     resource_type = "layer"
-    save_method = "POST"
+    save_method = "PUT"
 
     @property
     def href(self):

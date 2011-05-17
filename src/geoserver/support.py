@@ -71,7 +71,7 @@ def attribute_list(node):
 
 def key_value_pairs(node):
     if node is not None:
-        return dict((entry.attrib['key'], entry.text) for entry in connection_parameters)
+        return dict((entry.attrib['key'], entry.text) for entry in node.findall("entry"))
 
 def write_string(name):
     def write(builder, value):

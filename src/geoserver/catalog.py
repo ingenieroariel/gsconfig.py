@@ -91,7 +91,7 @@ class Catalog(object):
 
 
   def get_xml(self, url):
-    logger.debug("URL: %s", url)
+    logger.debug("GET %s", url)
     cached_response = self._cache.get(url)
 
     def is_valid(cached_response):
@@ -121,6 +121,7 @@ class Catalog(object):
       "Content-type": "application/xml",
       "Accept": "application/xml"
     }
+    logger.debug("%s %s", obj.save_method, obj.href)
     response = self.http.request(url, obj.save_method, message, headers)
     self._cache.clear()
     return response
@@ -177,7 +178,9 @@ class Catalog(object):
           return stores
 
   def create_datastore(self, name, workspace = None):
-      if workspace is None:
+      if isinstance(workspace, basestring):
+          workspace = self.get_workspace(workspace)
+      elif workspace is None:
           workspace = self.get_default_workspace()
       return UnsavedDataStore(self, name, workspace)
 
@@ -250,7 +253,7 @@ class Catalog(object):
     else:
         logger.debug('Data is a zipfile')
         archive = data
-    message = open(zip)
+    message = open(archive)
     try:
       headers, response = self.http.request(ds_url, "PUT", message, headers)
       self._cache.clear()

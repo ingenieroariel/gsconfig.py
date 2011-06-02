@@ -60,8 +60,8 @@ class FeatureType(ResourceInfo):
                 title = write_string("title"),
                 abstract = write_string("abstract"),
                 enabled = write_bool("enabled"),
-                nativeBbox = write_bbox("nativeBbox"),
-                latlonBbox = write_bbox("latLonBoundingBox"),
+                nativeBoundingBox = write_bbox("nativeBbox"),
+                latLonBoundingBox = write_bbox("latLonBoundingBox"),
                 projection = write_string("srs"),
                 projection_policy = write_string("projectionPolicy"),
                 keywords = write_string_list("keywords")
@@ -143,8 +143,8 @@ class Coverage(ResourceInfo):
                 title = write_string("title"),
                 abstract = write_string("abstract"),
                 enabled = write_bool("enabled"),
-                nativeBbox = write_bbox("nativeBbox"),
-                latlonBbox = write_bbox("latLonBoundingBox"),
+                nativeBoundingBox = write_bbox("nativeBoundingBox"),
+                latLonBoundingBox = write_bbox("latLonBoundingBox"),
                 projection = write_string("srs"),
                 projection_policy = write_string("projectionPolicy"),
                 keywords = write_string_list("keywords")

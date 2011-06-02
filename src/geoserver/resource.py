@@ -62,8 +62,8 @@ class FeatureType(ResourceInfo):
                 enabled = write_bool("enabled"),
                 nativeBoundingBox = write_bbox("nativeBbox"),
                 latLonBoundingBox = write_bbox("latLonBoundingBox"),
-                projection = write_string("srs"),
-                projection_policy = write_string("projectionPolicy"),
+                srs = write_string("srs"),
+                projectionPolicy = write_string("projectionPolicy"),
                 keywords = write_string_list("keywords")
             )
 

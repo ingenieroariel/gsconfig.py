@@ -88,7 +88,7 @@ class Layer(ResourceInfo):
         if self.dom is None:
             self.fetch()
         styles = self.dom.findall("styles/style/name")
-        return (Style(self.catalog, s.text) for s in styles)
+        return [Style(self.catalog, s.text) for s in styles]
 
     def _set_alternate_styles(self, styles):
         self.dirty["alternate_styles"] = styles

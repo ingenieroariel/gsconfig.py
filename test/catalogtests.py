@@ -201,6 +201,17 @@ class ModifyingTests(unittest.TestCase):
     rs = self.cat.get_resource("Arc_Sample")
     self.assertEqual(old_abstract, rs.abstract)
 
+    # Change metadata links on server
+    rs.metadata_links = [("text/xml", "TC211", "http://example.com/gsconfig.test.metadata")]
+    enabled = rs.enabled
+    self.cat.save(rs)
+    rs = self.cat.get_resource("Arc_Sample")
+    self.assertEqual(
+            [("text/xml", "TC211", "http://example.com/gsconfig.test.metadata")],
+            rs.metadata_links)
+    self.assertEqual(enabled, rs.enabled)
+
+
   def testFeatureTypeCreate(self):
     shapefile_plus_sidecars = shapefile_and_friends("test/data/states")
     expected = {

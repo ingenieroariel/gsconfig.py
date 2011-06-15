@@ -162,6 +162,7 @@ class Coverage(ResourceInfo):
     projection = xml_property("srs")
     projection_policy = xml_property("projectionPolicy")
     keywords = xml_property("keywords", string_list)
+    metadata_links = xml_property("metadataLinks", metadata_link_list)
 
     writers = dict(
                 title = write_string("title"),
@@ -171,5 +172,6 @@ class Coverage(ResourceInfo):
                 latLonBoundingBox = write_bbox("latLonBoundingBox"),
                 projection = write_string("srs"),
                 projection_policy = write_string("projectionPolicy"),
-                keywords = write_string_list("keywords")
+                keywords = write_string_list("keywords"),
+                metadataLinks = write_metadata_link_list("metadataLinks")
             )

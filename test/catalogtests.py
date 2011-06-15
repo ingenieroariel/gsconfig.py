@@ -114,6 +114,17 @@ class ModifyingTests(unittest.TestCase):
     rs = self.cat.get_resource("bugsites")
     self.assertEqual(["bugsites", "gsconfig"], rs.keywords)
     self.assertEqual(enabled, rs.enabled)
+    
+    # Change metadata links on server
+    rs.metadata_links = [("text/xml", "TC211", "http://example.com/gsconfig.test.metadata")]
+    enabled = rs.enabled
+    self.cat.save(rs)
+    rs = self.cat.get_resource("bugsites")
+    self.assertEqual(
+            [("text/xml", "TC211", "http://example.com/gsconfig.test.metadata")],
+            rs.metadata_links)
+    self.assertEqual(enabled, rs.enabled)
+
 
     # Restore abstract
     rs.abstract = old_abstract

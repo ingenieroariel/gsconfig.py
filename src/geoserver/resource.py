@@ -14,6 +14,28 @@ def md_link(node):
     else:
         return (mimetype.text, mdtype.text, content.text)
 
+def metadata_link_list(node):
+    if node is not None:
+        return [md_link(n) for n in node.findall("metadataLink")]
+
+def write_metadata_link_list(name):
+    def write(builder, md_links):
+        builder.start(name, dict())
+        for (mime, md_type, content_url) in md_links:
+            builder.start("metadataLink", dict())
+            builder.start("type", dict())
+            builder.data(mime)
+            builder.end("type")
+            builder.start("metadataType", dict())
+            builder.data(md_type)
+            builder.end("metadataType")
+            builder.start("content", dict())
+            builder.data(content_url)
+            builder.end("content")
+            builder.end("metadataLink")
+        builder.end("metadataLinks")
+    return write
+
 def featuretype_from_index(catalog, workspace, store, node):
     name = node.find("name")
     return FeatureType(catalog, workspace, store, name.text)
@@ -55,6 +77,7 @@ class FeatureType(ResourceInfo):
     projection_policy = xml_property("projectionPolicy")
     keywords = xml_property("keywords", string_list)
     attributes = xml_property("attributes", attribute_list)
+    metadata_links = xml_property("metadataLinks", metadata_link_list)
 
     writers = dict(
                 title = write_string("title"),
@@ -64,7 +87,8 @@ class FeatureType(ResourceInfo):
                 latLonBoundingBox = write_bbox("latLonBoundingBox"),
                 srs = write_string("srs"),
                 projectionPolicy = write_string("projectionPolicy"),
-                keywords = write_string_list("keywords")
+                keywords = write_string_list("keywords"),
+                metadataLinks = write_metadata_link_list("metadataLinks")
             )
 
 class CoverageDimension(object):

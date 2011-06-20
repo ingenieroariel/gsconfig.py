@@ -306,7 +306,19 @@ class ModifyingTests(unittest.TestCase):
     # Restore attribution
     lyr.attribution = old_attribution
     self.cat.save(lyr)
+    lyr = self.cat.get_layer("states")
     self.assertEqual(old_attribution, lyr.attribution)
+
+    self.assertEqual(lyr.default_style.name, "population")
+   
+    old_default_style = lyr.default_style
+    lyr.default_style = (s for s in lyr.styles if s.name == "pophatch").next()
+    lyr.styles = [old_default_style]
+    self.cat.save(lyr)
+    lyr = self.cat.get_layer("states")
+    self.assertEqual(lyr.default_style.name, "pophatch")
+    self.assertEqual([s.name for s in lyr.styles], ["population"])
+
 
   def testStyles(self):
       # upload new style, verify existence

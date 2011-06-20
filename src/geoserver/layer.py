@@ -49,6 +49,18 @@ def _write_default_style(builder, name):
         builder.end("name")
     builder.end("defaultStyle")
 
+
+def _write_alternate_styles(builder, styles):
+    builder.start("styles", dict())
+    for s in styles:
+        builder.start("style", dict())
+        builder.start("name", dict())
+        builder.data(s.name)
+        builder.end("name")
+        builder.end("style")
+    builder.end("styles")
+
+
 class Layer(ResourceInfo):
     def __init__(self, catalog, name):
         super(Layer, self).__init__()
@@ -115,5 +127,6 @@ class Layer(ResourceInfo):
     writers = dict(
             attribution = _write_attribution,
             enabled = write_bool("enabled"),
-            default_style = _write_default_style
+            default_style = _write_default_style,
+            alternate_styles = _write_alternate_styles
             )

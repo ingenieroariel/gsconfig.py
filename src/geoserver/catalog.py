@@ -420,6 +420,7 @@ class Catalog(object):
 
     headers, response = self.http.request(workspace_url, "POST", xml, headers)
     assert 200 <= headers.status < 300, "Tried to create workspace but got " + str(headers.status) + ": " + response
+    self._cache.clear()
     return self.get_workspace(name)
 
   def get_workspaces(self):

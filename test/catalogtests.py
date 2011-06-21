@@ -343,6 +343,8 @@ class ModifyingTests(unittest.TestCase):
       self.assertEqual("Fred", fred.sld_title)
 
   def testWorkspaceCreate(self):
+      ws = self.cat.get_workspace("acme")
+      self.assertEqual(None, ws)
       self.cat.create_workspace("acme", "http://example.com/acme")
       ws = self.cat.get_workspace("acme")
       self.assertEqual("acme", ws.name)

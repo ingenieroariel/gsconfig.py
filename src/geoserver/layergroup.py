@@ -5,18 +5,14 @@ class LayerGroup(ResourceInfo):
     """
     Represents a layer group in geoserver 
     """
-    def __init__(self,catalog,node):
+    def __init__(self, catalog, name):
         self.catalog = catalog
-        self.href  = atom_link(node)
-        self.name  = None
-        self.update()
+        assert isinstance(name, basestring)
+        self.name = name
 
-    def update(self): 
-        ResourceInfo.update(self)
-        self.name = self.metadata.find("name").text
-        self.layers = [ Layer(self.catalog,x) for x in self.metadata.findall("layers/layer")] 
-        self.styles = self.metadata.find("styles/style")
-        self.bounds = self.metadata.find("bounds") 
+    @property
+    def href(self):
+        return "%s/layergroups/%s.xml" % (self.catalog.service_url, self.name)
 
     def __str__(self):
         return "<LayerGroup %s>" % self.name

@@ -363,13 +363,15 @@ class Catalog(object):
   def get_map(self, id=None, name=None):
     raise NotImplementedError()
 
-  def get_layergroup(self, id=None, name=None):
+  def get_layergroup(self, name=None):
     group = self.get_xml("%s/layergroups/%s.xml" % (self.service_url, name))
+    # from xml.etree.ElementTree import tostring
+    # print tostring(group)
     return LayerGroup(self, group.find("name").text)
 
   def get_layergroups(self):
     groups = self.get_xml("%s/layergroups.xml" % self.service_url)
-    return [LayerGroup(self,group) for group in groups.findall("layerGroup")]
+    return [LayerGroup(self, g.find("name").text) for g in groups.findall("layerGroup")]
 
   def get_style(self, name):
       try:

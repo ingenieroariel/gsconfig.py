@@ -1,6 +1,7 @@
 import unittest
 from geoserver.catalog import Catalog, ConflictingDataError, UploadError
 from geoserver.support import ResourceInfo
+from geoserver.layergroup import LayerGroup
 from geoserver.util import shapefile_and_friends
 
 class CatalogTests(unittest.TestCase):
@@ -82,6 +83,20 @@ class CatalogTests(unittest.TestCase):
     self.assert_(isinstance(states.resource, ResourceInfo))
     self.assertEqual(set(s.name for s in states.styles), set(['pophatch', 'polygon']))
     self.assertEqual(states.default_style.name, "population")
+
+  def testLayerGroups(self):
+    expected = set(["tasmania", "tiger-ny", "spearfish"])
+    actual = set(l.name for l in self.cat.get_layergroups())
+    missing = expected - actual
+    extras = actual - expected
+    message = "Actual layergroup list did not match expected! (Extras: %s) (Missing: %s)" % (extras, missing)
+    self.assert_(len(expected ^ actual) == 0, message)
+
+    tas = self.cat.get_layergroup("tasmania")
+
+    self.assert_("tasmania", tas.name)
+    self.assert_(isinstance(tas, LayerGroup))
+    # self.assertEqual(len(tas.styled_layers), 4)
 
   def testStyles(self):
     self.assertEqual(20, len(self.cat.get_styles()))

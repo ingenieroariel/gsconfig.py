@@ -162,6 +162,9 @@ class Coverage(ResourceInfo):
     projection = xml_property("srs")
     projection_policy = xml_property("projectionPolicy")
     keywords = xml_property("keywords", string_list)
+    request_srs_list = xml_property("requestSRS", string_list)
+    response_srs_list = xml_property("responseSRS", string_list)
+    supported_formats = xml_property("supportedFormats", string_list)
     metadata_links = xml_property("metadataLinks", metadata_link_list)
 
     writers = dict(
@@ -173,5 +176,8 @@ class Coverage(ResourceInfo):
                 projection = write_string("srs"),
                 projection_policy = write_string("projectionPolicy"),
                 keywords = write_string_list("keywords"),
-                metadataLinks = write_metadata_link_list("metadataLinks")
+                metadataLinks = write_metadata_link_list("metadataLinks"),
+                requestSRS = write_string_list("requestSRS"),
+                responseSRS = write_string_list("responseSRS"),
+                supportedFormats = write_string_list("supportedFormats")
             )

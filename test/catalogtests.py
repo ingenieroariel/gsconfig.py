@@ -226,6 +226,32 @@ class ModifyingTests(unittest.TestCase):
             rs.metadata_links)
     self.assertEqual(enabled, rs.enabled)
 
+    srs_before = set(['EPSG:4326'])
+    srs_after = set(['EPSG:4326', 'EPSG:3785'])
+    formats = set(['ARCGRID', 'ARCGRID-GZIP', 'GEOTIFF', 'PNG', 'GIF', 'TIFF'])
+    formats_after = set(["PNG", "GIF", "TIFF"])
+
+    # set and save request_srs_list
+    self.assertEquals(set(rs.request_srs_list), srs_before, str(rs.request_srs_list))
+    rs.request_srs_list = rs.request_srs_list + ['EPSG:3785']
+    self.cat.save(rs)
+    rs = self.cat.get_resource("Arc_Sample")
+    self.assertEquals(set(rs.request_srs_list), srs_after, str(rs.request_srs_list))
+
+    # set and save response_srs_list
+    self.assertEquals(set(rs.response_srs_list), srs_before, str(rs.response_srs_list))
+    rs.response_srs_list = rs.response_srs_list + ['EPSG:3785']
+    self.cat.save(rs)
+    rs = self.cat.get_resource("Arc_Sample")
+    self.assertEquals(set(rs.response_srs_list), srs_after, str(rs.response_srs_list))
+
+    # set and save supported_formats
+    self.assertEquals(set(rs.supported_formats), formats, str(rs.supported_formats))
+    rs.supported_formats = ["PNG", "GIF", "TIFF"]
+    self.cat.save(rs)
+    rs = self.cat.get_resource("Arc_Sample")
+    self.assertEquals(set(rs.supported_formats), formats_after, str(rs.supported_formats))
+
 
   def testFeatureTypeCreate(self):
     shapefile_plus_sidecars = shapefile_and_friends("test/data/states")

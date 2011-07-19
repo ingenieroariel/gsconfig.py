@@ -84,11 +84,13 @@ class Catalog(object):
       "Content-type": "application/xml",
       "Accept": "application/xml"
     }
-    response = self.http.request(url, "DELETE", headers=headers)
+    response, content = self.http.request(url, "DELETE", headers=headers)
     self._cache.clear()
 
-    return response
-
+    if response.status == 200:
+        return (response, content)
+    else:
+        raise FailedRequestError("Tried to make a DELETE request to %s but got a %d status code: \n%s" % (url, response.status, content))
 
   def get_xml(self, url):
     logger.debug("GET %s", url)

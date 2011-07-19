@@ -96,7 +96,8 @@ class CatalogTests(unittest.TestCase):
 
     self.assert_("tasmania", tas.name)
     self.assert_(isinstance(tas, LayerGroup))
-    # self.assertEqual(len(tas.styled_layers), 4)
+    self.assertEqual(tas.layers, ['tasmania_state_boundaries', 'tasmania_water_bodies', 'tasmania_roads', 'tasmania_cities'], tas.layers)
+    self.assertEqual(tas.styles, [None, None, None, None], tas.styles)
 
   def testStyles(self):
     self.assertEqual(20, len(self.cat.get_styles()))
@@ -418,6 +419,20 @@ class ModifyingTests(unittest.TestCase):
 
     states = self.cat.get_store('states_shapefile')
     self.assert_(states.enabled == True)
+
+  def testLayerGroupSave(self):
+    tas = self.cat.get_layergroup("tasmania")
+
+    self.assertEqual(tas.layers, ['tasmania_state_boundaries', 'tasmania_water_bodies', 'tasmania_roads', 'tasmania_cities'], tas.layers)
+    self.assertEqual(tas.styles, [None, None, None, None], tas.styles)
+
+    tas.layers = tas.layers[:-1]
+    tas.styles = tas.styles[:-1]
+
+    self.cat.save(tas)
+
+    self.assertEqual(tas.layers, ['tasmania_state_boundaries', 'tasmania_water_bodies', 'tasmania_roads'], tas.layers)
+    self.assertEqual(tas.styles, [None, None, None], tas.styles)
 
 if __name__ == "__main__":
   unittest.main()

@@ -1,16 +1,20 @@
-from geoserver.support import ResourceInfo, atom_link
+from geoserver.support import ResourceInfo, atom_link, xml_property
 import re
 
 class Style(ResourceInfo):
     def __init__(self, catalog, name):
-        self.catalog = catalog
+        super(Style, self).__init__()
         assert isinstance(name, basestring)
+
+        self.catalog = catalog
         self.name = name
         self._sld_dom = None
 
     @property
     def href(self):
         return "%s/styles/%s.xml" % (self.catalog.service_url, self.name)
+
+    filename = xml_property("filename")
 
     def _get_sld_dom(self):
         if self._sld_dom is None:
@@ -33,12 +37,6 @@ class Style(ResourceInfo):
         style_container = re.sub(r"/rest$", "/styles", self.catalog.service_url)
         self.fetch()
         return "%s/%s" % (style_container, self.filename)
-
-    @property
-    def filename(self):
-        if self.dom is None:
-            self.fetch()
-        return self.dom.find("filename").text
 
 # class Style(ResourceInfo):
 #   def __init__(self,catalog, node):

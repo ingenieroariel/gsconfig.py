@@ -102,6 +102,7 @@ class CatalogTests(unittest.TestCase):
   def testStyles(self):
     self.assertEqual(20, len(self.cat.get_styles()))
     self.assertEqual("population", self.cat.get_style("population").name)
+    self.assertEqual("population.sld", self.cat.get_style("population").filename)
 
 
 class ModifyingTests(unittest.TestCase):

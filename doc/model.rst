@@ -210,8 +210,8 @@ While FeatureTypes (vector Resources) and Coverages (raster Resources) each prov
 
   .. note:: There is currently a caveat regarding the usage of list properties in ``gsconfig``.
 
-Working with Vector Data
-------------------------
+Working with FeatureTypes (Vector Data)
+---------------------------------------
 
 * **attributes** is a list of objects describing the names and types of the fields in the data set.
 
@@ -221,8 +221,8 @@ Working with Vector Data
     Also, I'm not totally sure what the implications are of editing this property; it is editable through restconfig but not through the GUI.
 
 
-Working with Raster Data
-------------------------
+Working with Coverages (Raster Data)
+------------------------------------
 
 * **request_srs_list** is a list of strings defining the SRS's that GeoServer should allow in requests against this coverage.
   Each SRS should be specified by its EPSG code.
@@ -326,3 +326,68 @@ When working with LayerGroups it is important to ensure that the ``layers`` list
 .. note:: 
 
     GeoServer also lets us read and set the bounding box for LayerGroups via the REST API but gsconfig doesn't support this yet.
+
+Working with Stores
++++++++++++++++++++
+
+Resources in GeoServer are always contained within a Store.
+A Store's configuration includes details of how to connect to some store of spatial data, such as login credentials for a PostgreSQL server or the file path to a GeoTIFF file.
+You can get a listing of all Stores configured in GeoServer::
+
+    from geoserver.catalog import Catalog
+    cat = Catalog("http://localhost:8080/geoserver/rest")
+    all_stores = cat.get_stores()
+
+If you know a Store's name you can also retrieve it directly::
+
+    from geoserver.catalog import Catalog
+    cat = Catalog("http://localhost:8080/geoserver/rest")
+    that_store = cat.get_store("db_server")
+
+Once you have a Store, you can manipulate its properties to change the configuration.  However, no changes will actually be applied until you save it::
+
+    from geoserver.catalog import Catalog
+    cat = Catalog("http://localhost:8080/geoserver/rest")
+    that_store = cat.get_store("db_server")
+    that_store.enabled = False
+    # at this point that_store is still enabled in GeoServer
+    cat.save(that_store)
+    # now it is disabled
+
+Stores provide one common setting:
+
+    * *enabled* A Boolean flag which may be set to ``False`` to stop serving the Resources (and corresponding Layers) for a Store without deleting them or the Store.
+      If this is set to ``True`` then the Layers will be available.
+
+Working with DataStores (Vector Data)
+-------------------------------------
+
+* **connection_parameters** a dict containing connection details.
+  The keys used and interpretation of their values depends on the type of datastore involved.
+  See :doc:`examples` for some sample usage, or :doc:`cross-ref-with-geotools` for details on how to identify the parameters for datastores not covered there.
+
+Working with CoverageStores (Raster Data)
+-----------------------------------------
+
+* **url** A URL string (usually with the ``file:`` pseudo-protocol) identifying the raster file backing the CoverageStore.
+
+* **type** A string identifying the format of the coverage file.
+  While GeoServer extensions can add support for additional formats, the following are supported in a "vanilla" GeoServer installation:
+
+  * ``Gtopo30``, ``GeoTIFF``, ``ArcGrid``, ``WorldImage``, ``ImageMosaic``
+
+Working with Workspaces
++++++++++++++++++++++++
+
+Workspaces provide a logical grouping to help administrators organize the data in a GeoServer instance.
+You can get a listing of all Workspaces configured in GeoServer::
+
+    from geoserver.catalog import Catalog
+    cat = Catalog("http://localhost:8080/geoserver/rest")
+    all_workspaces = cat.get_workspaces()
+
+If you know a Workspace's name you can also retrieve it directly::
+
+    from geoserver.catalog import Catalog
+    cat = Catalog("http://localhost:8080/geoserver/rest")
+    that_workspace = cat.get_workspace("forestry")

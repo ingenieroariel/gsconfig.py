@@ -83,7 +83,6 @@ class CoverageStore(ResourceInfo):
     name = xml_property("name")
     url = xml_property("url")
     type = xml_property("type")
-    connection_parameters = xml_property("connectionParameters", key_value_pairs)
 
     writers = dict(enabled = write_bool("enabled"),
                    name = write_string("name"),

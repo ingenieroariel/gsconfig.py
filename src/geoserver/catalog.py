@@ -10,7 +10,7 @@ from geoserver.workspace import workspace_from_index, Workspace
 from os import unlink
 import httplib2
 from zipfile import is_zipfile
-from xml.etree.ElementTree import XML
+from xml.etree.ElementTree import ParseError, XML
 from urlparse import urlparse
 from urllib import urlencode
 
@@ -99,13 +99,23 @@ class Catalog(object):
     def is_valid(cached_response):
         return cached_response is not None and datetime.now() - cached_response[0] < timedelta(seconds=5)
 
+    def parse_or_raise(xml):
+        try:
+            return XML(xml)
+        except ParseError, e:
+            raise Exception(
+                "GeoServer gave non-XML response for [GET %s]: %s" % (
+                    url, xml),
+                e)
+
     if is_valid(cached_response):
-        return XML(cached_response[1])
+            raw_text = cached_response[1]
+            return parse_or_raise(cached_response[1])
     else:
         response, content = self.http.request(url)
         if response.status == 200:
             self._cache[url] = (datetime.now(), content)
-            return XML(content)
+            return parse_or_raise(content)
         else:
             raise FailedRequestError("Tried to make a GET request to %s but got a %d status code: \n%s" % (url, response.status, content))
 

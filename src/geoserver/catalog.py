@@ -10,7 +10,7 @@ from geoserver.workspace import workspace_from_index, Workspace
 from os import unlink
 import httplib2
 from zipfile import is_zipfile
-from xml.etree.ElementTree import ParseError, XML
+from xml.etree.ElementTree import XML
 from urlparse import urlparse
 from urllib import urlencode
 
@@ -102,7 +102,7 @@ class Catalog(object):
     def parse_or_raise(xml):
         try:
             return XML(xml)
-        except ParseError, e:
+        except SyntaxError, e:
             raise Exception(
                 "GeoServer gave non-XML response for [GET %s]: %s" % (
                     url, xml),

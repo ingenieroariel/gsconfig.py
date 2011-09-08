@@ -12,6 +12,10 @@ class Style(ResourceInfo):
     def href(self):
         return "%s/styles/%s.xml" % (self.catalog.service_url, self.name)
 
+    def body_href(self):
+        return "%s/styles/%s.sld" % (self.catalog.service_url, self.name)
+
+
     def _get_sld_dom(self):
         if self._sld_dom is None:
             self._sld_dom = self.catalog.get_xml(self.body_href())
@@ -29,10 +33,15 @@ class Style(ResourceInfo):
         name_node = user_style.find("{http://www.opengis.net/sld}Name")
         return name_node.text if name_node is not None else None
 
-    def body_href(self):
-        style_container = re.sub(r"/rest$", "/styles", self.catalog.service_url)
-        self.fetch()
-        return "%s/%s" % (style_container, self.filename)
+    @property
+    def sld_body(self):
+        response, content = self.catalog.http.request(self.body_href())
+        return content
+
+    def update_body(self, body):
+        headers = { "Content-Type": "application/vnd.ogc.sld+xml" }
+        response, content = self.catalog.http.request(
+                self.body_href(), "PUT", body, headers)
 
     @property
     def filename(self):

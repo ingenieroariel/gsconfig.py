@@ -83,7 +83,7 @@ class FeatureType(ResourceInfo):
                 title = write_string("title"),
                 abstract = write_string("abstract"),
                 enabled = write_bool("enabled"),
-                nativeBoundingBox = write_bbox("nativeBbox"),
+                nativeBoundingBox = write_bbox("nativeBoundingBox"),
                 latLonBoundingBox = write_bbox("latLonBoundingBox"),
                 srs = write_string("srs"),
                 projectionPolicy = write_string("projectionPolicy"),

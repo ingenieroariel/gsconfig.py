@@ -5,7 +5,7 @@ from geoserver.store import coveragestore_from_index, datastore_from_index, \
     DataStore, CoverageStore, UnsavedDataStore, UnsavedCoverageStore
 from geoserver.style import Style
 from geoserver.support import prepare_upload_bundle
-from geoserver.layergroup import LayerGroup
+from geoserver.layergroup import LayerGroup, UnsavedLayerGroup
 from geoserver.workspace import workspace_from_index, Workspace
 from os import unlink
 import httplib2
@@ -376,14 +376,23 @@ class Catalog(object):
     raise NotImplementedError()
 
   def get_layergroup(self, name=None):
-    group = self.get_xml("%s/layergroups/%s.xml" % (self.service_url, name))
-    # from xml.etree.ElementTree import tostring
-    # print tostring(group)
-    return LayerGroup(self, group.find("name").text)
+      try: 
+          group = self.get_xml("%s/layergroups/%s.xml" % (
+              self.service_url, name))
+          return LayerGroup(self, group.find("name").text)
+      except FailedRequestError, e:
+          return None
 
   def get_layergroups(self):
     groups = self.get_xml("%s/layergroups.xml" % self.service_url)
     return [LayerGroup(self, g.find("name").text) for g in groups.findall("layerGroup")]
+
+  def create_layergroup(self, name, layers = (), styles = (), bounds = None):
+      if any(g.name == name for g in self.get_layergroups()):
+          raise ConflictingDataError("Workspace named %s already exists!" %
+                  name)
+      else:
+          return UnsavedLayerGroup(self, name, layers, styles, bounds)
 
   def get_style(self, name):
       try:

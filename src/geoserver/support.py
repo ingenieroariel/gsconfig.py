@@ -145,7 +145,8 @@ class ResourceInfo(object):
         builder.start(self.resource_type, dict())
         self.serialize(builder)
         builder.end(self.resource_type)
-        return tostring(builder.close())
+        msg = tostring(builder.close())
+        return msg
                 
 def prepare_upload_bundle(name, data):
     """GeoServer's REST API uses ZIP archives as containers for file formats such

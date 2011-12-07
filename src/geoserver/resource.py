@@ -173,7 +173,7 @@ class Coverage(ResourceInfo):
                 enabled = write_bool("enabled"),
                 nativeBoundingBox = write_bbox("nativeBoundingBox"),
                 latLonBoundingBox = write_bbox("latLonBoundingBox"),
-                projection = write_string("srs"),
+                srs = write_string("srs"),
                 projection_policy = write_string("projectionPolicy"),
                 keywords = write_string_list("keywords"),
                 metadataLinks = write_metadata_link_list("metadataLinks"),

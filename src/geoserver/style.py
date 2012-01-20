@@ -1,10 +1,12 @@
-from geoserver.support import ResourceInfo, atom_link
+from geoserver.support import ResourceInfo, atom_link, xml_property
 import re
 
 class Style(ResourceInfo):
     def __init__(self, catalog, name):
-        self.catalog = catalog
+        super(Style, self).__init__()
         assert isinstance(name, basestring)
+
+        self.catalog = catalog
         self.name = name
         self._sld_dom = None
 
@@ -15,6 +17,7 @@ class Style(ResourceInfo):
     def body_href(self):
         return "%s/styles/%s.sld" % (self.catalog.service_url, self.name)
 
+    filename = xml_property("filename")
 
     def _get_sld_dom(self):
         if self._sld_dom is None:
@@ -42,12 +45,6 @@ class Style(ResourceInfo):
         headers = { "Content-Type": "application/vnd.ogc.sld+xml" }
         response, content = self.catalog.http.request(
                 self.body_href(), "PUT", body, headers)
-
-    @property
-    def filename(self):
-        if self.dom is None:
-            self.fetch()
-        return self.dom.find("filename").text
 
 # class Style(ResourceInfo):
 #   def __init__(self,catalog, node):

@@ -6,15 +6,13 @@ from setuptools import setup, find_packages
 readme_text = file('README.rst', 'rb').read()
 
 setup(name = "gsconfig",
-    version = "0.5",
+    version = "0.5.1",
     description = readme_text,
     keywords = "GeoServer REST Configuration",
     license = "MIT",
     url = "http://github.com/opengeo/gsconfig.py",
     author = "David Winslow, Sebastian Benthall",
     author_email = "dwinslow@opengeo.org",
-    maintainer = 'Ariel Núñez',
-    maintainer_email = 'ingenieroariel@gmail.com',
     install_requires = ['httplib2'],
     package_dir = {'':'src'},
     packages = find_packages('src'),

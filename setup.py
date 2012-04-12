@@ -7,7 +7,8 @@ readme_text = file('README.rst', 'rb').read()
 
 setup(name = "gsconfig",
     version = "0.5.1",
-    description = readme_text,
+    description = "GeoServer REST Configuration",
+    long_description = readme_text,
     keywords = "GeoServer REST Configuration",
     license = "MIT",
     url = "http://github.com/opengeo/gsconfig.py",

@@ -3,7 +3,10 @@
 
 from setuptools import setup, find_packages
 
-readme_text = file('README.rst', 'rb').read()
+try:
+    readme_text = file('README.rst', 'rb').read()
+except IOError,e:
+    readme_text = ''
 
 setup(name = "gsconfig",
     version = "0.5.2",

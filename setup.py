@@ -2,9 +2,11 @@
 
 from setuptools import setup, find_packages
 
+readme_text = file('README.rst', 'rb').read()
+
 setup(name = "gsconfig",
     version = "0.5",
-    description = "GeoServer REST Configuration Client",
+    description = readme_text,
     keywords = "GeoServer REST Configuration",
     license = "MIT",
     url = "http://github.com/opengeo/gsconfig.py",

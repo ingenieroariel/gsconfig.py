@@ -14,7 +14,7 @@ setup(name = "gsconfig",
     package_dir = {'':'src'},
     packages = find_packages('src'),
     test_suite = "test.catalogtests",
-    classifiers   = [
+    classifiers = [
                  'Development Status :: 4 - Beta',
                  'Intended Audience :: Developers',
                  'Intended Audience :: Science/Research',
@@ -22,5 +22,6 @@ setup(name = "gsconfig",
                  'Operating System :: OS Independent',
                  'Programming Language :: Python',
                  'Topic :: Scientific/Engineering :: GIS',
+                ]
 ) 
 

@@ -11,6 +11,8 @@ from os import unlink
 import httplib2
 from zipfile import is_zipfile
 from xml.etree.ElementTree import XML
+from xml.parsers.expat import ExpatError
+
 from urlparse import urlparse
 from urllib import urlencode
 
@@ -102,7 +104,7 @@ class Catalog(object):
     def parse_or_raise(xml):
         try:
             return XML(xml)
-        except SyntaxError, e:
+        except (ExpatError, SyntaxError), e:
             raise Exception(
                 "GeoServer gave non-XML response for [GET %s]: %s" % (
                     url, xml),

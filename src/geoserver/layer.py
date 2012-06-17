@@ -86,8 +86,12 @@ class Layer(ResourceInfo):
             return self.dirty['default_style']
         if self.dom is None:
             self.fetch()
-        name = self.dom.find("defaultStyle/name").text
-        return self.catalog.get_style(name)
+        name = self.dom.find("defaultStyle/name")
+        # aborted data uploads can result in no default style
+        if name is not None:
+            return self.catalog.get_style(name.text)
+        else:
+            return None
 
     def _set_default_style(self, style):
         if isinstance(style, Style):

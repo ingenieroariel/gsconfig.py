@@ -72,15 +72,26 @@ class Catalog(object):
   def remove(self, object):
     raise NotImplementedError()
 
-  def delete(self, object, purge=False):
+  def delete(self, object, purge=False, recurse=False):
     """
     send a delete request
     XXX [more here]
     """
     url = object.href
 
+    #params aren't supported fully in httplib2 yet, so:
+    params = []
+
+    # purge deletes the SLD from disk when a style is deleted
     if purge:
-        url = url + "?purge=true"
+        params.append("purge=true")
+
+    # recurse deletes the resource when a layer is deleted.
+    if recurse:
+        params.append("recurse=true")
+
+    if params:
+        url = url + "?" + "&".join(params)
 
     headers = {
       "Content-type": "application/xml",

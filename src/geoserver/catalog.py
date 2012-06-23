@@ -14,7 +14,7 @@ from xml.etree.ElementTree import XML
 from xml.parsers.expat import ExpatError
 
 from urlparse import urlparse
-from urllib import urlencode
+from urllib import urlencode, quote_plus
 
 logger = logging.getLogger("gsconfig.catalog")
 
@@ -107,6 +107,8 @@ class Catalog(object):
 
   def get_xml(self, url):
     logger.debug("GET %s", url)
+    url = quote_plus(url, ":/")
+
     cached_response = self._cache.get(url)
 
     def is_valid(cached_response):
